@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>电商商品价格采集对比工具</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --jd:#e1251b; --tb:#ff6600; --pdd:#e02e24;
+    --bg:#f4f5f7; --card:#fff; --ink:#1f2329; --muted:#86909c;
+    --line:#e5e6eb; --accent:#165dff; --green:#00b42a; --amber:#ff7d00;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;
+       background:var(--bg);color:var(--ink);line-height:1.5}
+  header{background:linear-gradient(90deg,#e1251b 0%,#ff6600 50%,#e02e24 100%);color:#fff;padding:18px 24px}
+  header h1{margin:0;font-size:20px;font-weight:600}
+  header p{margin:4px 0 0;opacity:.9;font-size:13px}
+  main{max-width:1200px;margin:0 auto;padding:20px}
+  .card{background:var(--card);border-radius:10px;padding:18px 20px;margin-bottom:18px;
+        box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .card h2{margin:0 0 14px;font-size:15px;border-left:3px solid var(--accent);padding-left:10px}
+  /* 表单 */
+  form#searchForm{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field label{font-size:12px;color:var(--muted)}
+  input[type=text]{padding:9px 12px;border:1px solid var(--line);border-radius:6px;font-size:14px;width:280px}
+  input[type=number]{padding:9px 12px;border:1px solid var(--line);border-radius:6px;font-size:14px;width:90px}
+  .checkboxes{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .checkboxes label{display:inline-flex;align-items:center;gap:5px;font-size:13px;cursor:pointer}
+  .switch{display:inline-flex;align-items:center;gap:6px;font-size:13px}
+  button.run{background:var(--accent);color:#fff;border:0;padding:10px 22px;border-radius:6px;
+             font-size:14px;cursor:pointer;font-weight:500}
+  button.run:hover{filter:brightness(1.08)}
+  button.run:disabled{opacity:.5;cursor:not-allowed}
+  .hint{color:var(--muted);font-size:12px;margin-top:8px}
+  /* 统计卡片 */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .stat{background:linear-gradient(135deg,#f7f9fc,#fff);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+  .stat .k{font-size:12px;color:var(--muted)}
+  .stat .v{font-size:20px;font-weight:600;margin-top:4px}
+  /* 图表 */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .chart-box{position:relative;height:260px}
+  /* 表格 */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:#fafbfc;font-weight:600;color:var(--muted);font-size:12px}
+  tr:hover td{background:#fafbfc}
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;color:#fff;margin-right:4px}
+  .b-min{background:#00b42a}.b-val{background:#165dff}.b-disc{background:#ff7d00}
+  .b-shop{background:#722ed1}.b-hot{background:#e1251b}
+  .pf{display:inline-block;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600;color:#fff}
+  .pf-jd{background:var(--jd)}.pf-taobao{background:var(--tb)}.pf-pdd{background:var(--pdd)}
+  .price{color:var(--jd);font-weight:600}
+  .title-cell{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  /* 推荐 */
+  .recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .rec{border:1px solid #ffd966;background:linear-gradient(135deg,#fffdf2,#fff);border-radius:8px;padding:14px}
+  .rec .rank{display:inline-block;width:24px;height:24px;border-radius:50%;background:#ff7d00;color:#fff;
+             text-align:center;line-height:24px;font-size:13px;font-weight:600;margin-right:6px}
+  .rec h3{margin:0 0 8px;font-size:14px;display:flex;align-items:center}
+  .rec .rec-price{font-size:22px;color:var(--jd);font-weight:700;margin:6px 0}
+  .rec .reasons{font-size:12px;color:var(--muted);margin-top:6px}
+  .rec .meta{font-size:12px;color:var(--muted);margin-top:4px}
+  /* 示例展示 */
+  details{border:1px solid var(--line);border-radius:8px;margin-bottom:14px;background:#fafbfc}
+  details summary{padding:12px 16px;cursor:pointer;font-weight:600;font-size:14px}
+  details[open] summary{border-bottom:1px solid var(--line)}
+  pre{background:#1f2329;color:#e5e6eb;padding:14px 16px;border-radius:6px;overflow:auto;font-size:12px;margin:12px}
+  .sample-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 16px}
+  @media(max-width:760px){.sample-2col{grid-template-columns:1fr}}
+  .pill{display:inline-block;padding:2px 10px;border-radius:10px;background:var(--accent);color:#fff;font-size:11px;margin-right:6px}
+  .loading{display:none;text-align:center;padding:30px;color:var(--muted)}
+  .loading.show{display:block}
+  .spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--accent);
+           border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .empty{color:var(--muted);text-align:center;padding:30px}
+  .err{background:#ffece8;color:#f53f3f;border:1px solid #ffb4a8;padding:10px 14px;border-radius:6px;margin:12px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>电商商品价格自动化采集与对比工具</h1>
+  <p>支持 京东 / 淘宝 / 拼多多 批量采集 · 自动清洗去重 · 按价格升序 · 横向对比 · 性价比推荐</p>
+</header>
+
+<main>
+  <!-- 1. 搜索表单 -->
+  <div class="card">
+    <h2>关键词搜索采集</h2>
+    <form id="searchForm">
+      <div class="field">
+        <label>关键词</label>
+        <input type="text" id="keyword" placeholder="如：iPhone 15 / 蓝牙耳机 / 笔记本" required>
+      </div>
+      <div class="field">
+        <label>每平台采集数</label>
+        <input type="number" id="limit" value="8" min="1" max="50">
+      </div>
+      <div class="field">
+        <label>平台</label>
+        <div class="checkboxes">
+          <label><input type="checkbox" class="pf-cb" value="jd" checked> 京东</label>
+          <label><input type="checkbox" class="pf-cb" value="taobao" checked> 淘宝</label>
+          <label><input type="checkbox" class="pf-cb" value="pdd" checked> 拼多多</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>运行模式</label>
+        <label class="switch"><input type="checkbox" id="demo" checked> Demo 模式（推荐 · 现场即时返回）</label>
+      </div>
+      <button type="submit" class="run" id="runBtn">开始采集对比</button>
+    </form>
+    <div class="hint">
+      Demo 模式：沙箱/离线环境稳定运行，演示架构与可视化效果；真实模式会请求平台接口，被风控时自动回退 demo 数据。
+    </div>
+  </div>
+
+  <!-- 2. 初始示例（数据示例 + 结果示例） -->
+  <div class="card">
+    <h2>初始示例（页面加载即展示）</h2>
+    <div class="hint" style="margin-bottom:8px">
+      内置一组示例数据用于演示完整链路：<b>左侧为采集输入示例</b>（关键词 + 标准化商品卡片），
+      <b>右侧为对应结果示例</b>（清洗去重 + 排序 + 对比 + 推荐）。
+    </div>
+    <details>
+      <summary>📋 查看示例数据（输入 + 结果）</summary>
+      <div class="sample-2col">
+        <div>
+          <div style="font-weight:600;margin-bottom:6px"><span class="pill">输入示例</span></div>
+          <pre id="sampleInput">加载中…</pre>
+        </div>
+        <div>
+          <div style="font-weight:600;margin-bottom:6px"><span class="pill" style="background:#00b42a">结果示例</span></div>
+          <pre id="sampleOutput">加载中…</pre>
+        </div>
+      </div>
+      <button type="button" class="run" id="loadSampleBtn" style="background:#00b42a;margin:8px 16px 12px">把示例载入并渲染</button>
+    </details>
+  </div>
+
+  <!-- 3. 运行结果区 -->
+  <div id="resultArea">
+    <div class="empty" id="placeholder">在上方输入关键词，点击「开始采集对比」即可现场运行脚本并查看可视化结果。</div>
+
+    <div class="loading" id="loading">
+      <span class="spinner"></span> 正在采集并生成对比报告，请稍候…
+    </div>
+
+    <div id="errBox" class="err" style="display:none"></div>
+
+    <div id="report" style="display:none">
+      <!-- 报告标题 + 统计 -->
+      <div class="card">
+        <h2 id="reportTitle">报告</h2>
+        <div class="stats" id="stats"></div>
+      </div>
+      <!-- 图表 -->
+      <div class="card">
+        <h2>价格趋势 / 对比图表</h2>
+        <div class="grid2">
+          <div class="chart-box"><canvas id="chartPrice"></canvas></div>
+          <div class="chart-box"><canvas id="chartValue"></canvas></div>
+          <div class="chart-box"><canvas id="chartPlatform"></canvas></div>
+          <div class="chart-box"><canvas id="chartScatter"></canvas></div>
+        </div>
+      </div>
+      <!-- 平台汇总 -->
+      <div class="card">
+        <h2>平台价格汇总</h2>
+        <div style="overflow-x:auto"><table id="platformTable"></table></div>
+      </div>
+      <!-- 商品对比 -->
+      <div class="card">
+        <h2>商品横向对比（按价格升序）</h2>
+        <div style="overflow-x:auto"><table id="compareTable"></table></div>
+      </div>
+      <!-- 推荐 -->
+      <div class="card">
+        <h2>性价比 Top 推荐</h2>
+        <div class="recs" id="recs"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const PF_COLOR = {jd:'#e1251b', taobao:'#ff6600', pdd:'#e02e24', unknown:'#888'};
+const PF_NAME  = {jd:'京东', taobao:'淘宝', pdd:'拼多多', unknown:'未知'};
+let charts = {};
+
+function pfBadge(p){const n=PF_NAME[p]||p;return `<span class="pf pf-${p}">${n}</span>`;}
+function badgeHtml(b){const cls={最低价:'b-min',高性价比:'b-val',大额优惠:'b-disc',高分店铺:'b-shop',热销爆款:'b-hot'}[b]||'b-val';return `<span class="badge ${cls}">${b}</span>`;}
+function esc(s){return (s||'').toString().replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+async function loadSample(){
+  try{
+    const r = await fetch('/api/sample');
+    const data = await r.json();
+    document.getElementById('sampleInput').textContent  = JSON.stringify(data.input,  null, 2);
+    document.getElementById('sampleOutput').textContent = JSON.stringify(data.output, null, 2);
+    window.__sample = data.output;  // 供「载入并渲染」按钮使用
+  }catch(e){
+    document.getElementById('sampleInput').textContent  = '加载失败：'+e;
+    document.getElementById('sampleOutput').textContent = '加载失败：'+e;
+  }
+}
+
+function renderReport(report){
+  document.getElementById('placeholder').style.display='none';
+  document.getElementById('loading').classList.remove('show');
+  document.getElementById('report').style.display='block';
+
+  document.getElementById('reportTitle').textContent =
+    `关键词「${report.keyword}」共 ${report.total} 条商品`;
+
+  // stats
+  const s = report.stats||{};
+  const statsHtml = [
+    ['商品总数', s.count||0],
+    ['最低价', '¥'+(s.price_min||0).toFixed(2)],
+    ['最高价', '¥'+(s.price_max||0).toFixed(2)],
+    ['均价', '¥'+(s.price_avg||0).toFixed(2)],
+    ['中位价', '¥'+(s.price_median||0).toFixed(2)],
+    ['价格标准差', '¥'+(s.price_stdev||0).toFixed(2)],
+    ['销量合计', (s.sales_total||0).toLocaleString()],
+    ['店铺均分', (s.rating_avg||0).toFixed(2)],
+    ['含折扣', (s.discount_count||0)+' 件'],
+  ].map(([k,v])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  document.getElementById('stats').innerHTML = statsHtml;
+
+  // platform table
+  const ps = report.platform_summary||[];
+  let pHtml = `<thead><tr><th>平台</th><th>数量</th><th>最低价</th><th>均价</th><th>中位价</th><th>最高价</th><th>评分</th><th>总销量</th></tr></thead><tbody>`;
+  ps.forEach(p=>{ pHtml += `<tr>
+    <td>${pfBadge(p.platform)}</td><td>${p.count}</td>
+    <td class="price">¥${p.min_price.toFixed(2)}</td>
+    <td>¥${p.avg_price.toFixed(2)}</td>
+    <td>¥${p.median_price.toFixed(2)}</td>
+    <td>¥${p.max_price.toFixed(2)}</td>
+    <td>${p.avg_rating}</td>
+    <td>${p.total_sales.toLocaleString()}</td></tr>`;});
+  pHtml += '</tbody>';
+  document.getElementById('platformTable').innerHTML = pHtml;
+
+  // comparison table
+  const cmp = report.comparison||[];
+  let cHtml = `<thead><tr><th>#</th><th>平台</th><th>价格</th><th>销量</th><th>评分</th><th>性价比</th><th>标签</th><th>标题</th><th>链接</th></tr></thead><tbody>`;
+  cmp.forEach(r=>{
+    const url = r.url ? `<a href="${r.url}" target="_blank">查看</a>` : '-';
+    cHtml += `<tr>
+      <td>${r.rank}</td><td>${pfBadge(r.platform)}</td>
+      <td class="price">¥${r.price.toFixed(2)}</td>
+      <td>${r.sales.toLocaleString()}</td>
+      <td>${r.shop_rating}</td>
+      <td>${r.value_score}</td>
+      <td>${(r.badges||[]).map(badgeHtml).join('')}</td>
+      <td class="title-cell" title="${esc(r.title)}">${esc(r.title)}</td>
+      <td>${url}</td></tr>`;
+  });
+  cHtml += '</tbody>';
+  document.getElementById('compareTable').innerHTML = cHtml;
+
+  // recommendations
+  const recs = report.recommendations||[];
+  let rHtml = '';
+  recs.forEach(r=>{
+    rHtml += `<div class="rec">
+      <h3><span class="rank">${r.rank}</span>${pfBadge(r.platform)} ${esc(r.title.slice(0,40))}</h3>
+      <div class="rec-price">¥${r.price}</div>
+      <div class="meta">性价比 ${r.value_score} · 销量 ${r.sales.toLocaleString()} · 评分 ${r.shop_rating}${r.original_price?` · 原价 ¥${r.original_price}`:''}</div>
+      <div class="reasons">${r.reasons.map(esc).join('｜')}</div>
+      ${r.url?`<div class="meta"><a href="${r.url}" target="_blank">${esc(r.url)}</a></div>`:''}
+    </div>`;
+  });
+  document.getElementById('recs').innerHTML = rHtml || '<div class="empty">无推荐数据</div>';
+}
+
+function renderCharts(charts){
+  // 销毁旧图
+  Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});
+  window.charts = {};
+  const C = window.charts;
+  // 1. 价格分布柱状
+  C.price = new Chart(document.getElementById('chartPrice'), {
+    type:'bar',
+    data: charts.price_distribution,
+    options:{plugins:{legend:{display:false},title:{display:true,text:'价格分布（按价格升序）'}},
+             scales:{y:{beginAtZero:true,ticks:{callback:v=>'¥'+v}}}}
+  });
+  // 2. 性价比分柱状
+  C.value = new Chart(document.getElementById('chartValue'), {
+    type:'bar',
+    data: charts.value_score_bar,
+    options:{plugins:{legend:{display:false},title:{display:true,text:'性价比评分'}},
+             scales:{y:{beginAtZero:true,max:100}}}
+  });
+  // 3. 平台对比柱
+  C.platform = new Chart(document.getElementById('chartPlatform'), {
+    type:'bar',
+    data: charts.platform_compare,
+    options:{plugins:{title:{display:true,text:'各平台价格对比'}},
+             scales:{y:{ticks:{callback:v=>'¥'+v}}}}
+  });
+  // 4. 价格 vs 销量散点
+  const scatterData = (charts.price_sales_scatter.datasets[0].data||[]).map(p=>({x:p.x,y:p.y}));
+  C.scatter = new Chart(document.getElementById('chartScatter'), {
+    type:'scatter',
+    data:{datasets:[{label:'价格 vs 销量', data:scatterData, backgroundColor:'#9b59b6'}]},
+    options:{plugins:{title:{display:true,text:'价格 vs 销量'}},
+             scales:{x:{title:{display:true,text:'价格 (¥)'}}, y:{title:{display:true,text:'销量'}}}}
+  });
+}
+
+async function runSearch(e){
+  e.preventDefault();
+  const keyword = document.getElementById('keyword').value.trim();
+  if(!keyword) return;
+  const limit = parseInt(document.getElementById('limit').value)||8;
+  const platforms = Array.from(document.querySelectorAll('.pf-cb:checked')).map(x=>x.value);
+  const demo = document.getElementById('demo').checked;
+
+  document.getElementById('errBox').style.display='none';
+  document.getElementById('report').style.display='none';
+  document.getElementById('placeholder').style.display='none';
+  document.getElementById('loading').classList.add('show');
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true; btn.textContent='采集中…';
+
+  try{
+    const r = await fetch('/api/run', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({keyword, limit, platforms, demo})
+    });
+    const data = await r.json();
+    if(!r.ok){ throw new Error(data.error||('HTTP '+r.status)); }
+    renderReport(data.report);
+    renderCharts(data.charts);
+  }catch(err){
+    document.getElementById('errBox').textContent = '运行失败：'+err.message;
+    document.getElementById('errBox').style.display='block';
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('placeholder').style.display='block';
+  }finally{
+    btn.disabled = false; btn.textContent='开始采集对比';
+  }
+}
+
+document.getElementById('searchForm').addEventListener('submit', runSearch);
+document.getElementById('loadSampleBtn').addEventListener('click', ()=>{
+  if(!window.__sample) return;
+  renderReport(window.__sample);
+  // 示例没有 charts 字段，从 report 自行构造
+  const report = window.__sample;
+  const cmp = report.comparison||[];
+  const colors = cmp.map(r=>PF_COLOR[r.platform]||'#888');
+  renderCharts({
+    price_distribution:{labels:cmp.map(r=>'#'+r.rank), datasets:[{label:'价格',data:cmp.map(r=>r.price),backgroundColor:colors}]},
+    value_score_bar:{labels:cmp.map(r=>'#'+r.rank), datasets:[{label:'性价比',data:cmp.map(r=>r.value_score),backgroundColor:colors}]},
+    platform_compare:{labels:(report.platform_summary||[]).map(p=>p.display), datasets:[
+      {label:'最低',data:(report.platform_summary||[]).map(p=>p.min_price),backgroundColor:'#2ecc71'},
+      {label:'均价',data:(report.platform_summary||[]).map(p=>p.avg_price),backgroundColor:'#3498db'},
+      {label:'最高',data:(report.platform_summary||[]).map(p=>p.max_price),backgroundColor:'#e74c3c'}
+    ]},
+    price_sales_scatter:{datasets:[{data:cmp.map(r=>({x:r.price,y:r.sales})),backgroundColor:colors}]}
+  });
+});
+
+// 页面加载即拉取并展示示例
+loadSample();
+</script>
+</body>
+</html>

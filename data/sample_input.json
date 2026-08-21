@@ -1,0 +1,57 @@
+{
+  "keyword": "蓝牙耳机",
+  "platforms": [
+    "jd",
+    "taobao",
+    "pdd"
+  ],
+  "limit_per_platform": 8,
+  "description": "采集请求示例：发送关键词到各平台，原始返回以下商品卡片（已标准化）。",
+  "raw_products": [
+    {
+      "platform": "pdd",
+      "product_id": "pd9930",
+      "title": "无线蓝牙 蓝牙耳机 Pro 白色【PDD正品·全国联保】",
+      "price": 211.79,
+      "original_price": 243.6,
+      "sales": 19348,
+      "shop_name": "工厂直供店（官方旗舰店）",
+      "shop_rating": 4.3,
+      "url": "https://mobile.yangkeduo.com/goods.html?goods_id=89930",
+      "image_url": "https://via.placeholder.com/160x160/EEE/999?text=PDD%2389930",
+      "fetched_at": 1787291420.2817771,
+      "discount_rate": 0.1306,
+      "dedup_key": "pdd:pd9930:5827327f474f"
+    },
+    {
+      "platform": "pdd",
+      "product_id": "pd8382",
+      "title": "无线蓝牙 蓝牙耳机 主动降噪 米色【PDD正品·全国联保】",
+      "price": 230.59,
+      "original_price": 300.73,
+      "sales": 43489,
+      "shop_name": "百亿补贴官方（百亿补贴）",
+      "shop_rating": 4.04,
+      "url": "https://mobile.yangkeduo.com/goods.html?goods_id=58382",
+      "image_url": "https://via.placeholder.com/160x160/EEE/999?text=PDD%2358382",
+      "fetched_at": 1787291420.281791,
+      "discount_rate": 0.2332,
+      "dedup_key": "pdd:pd8382:aa051b89ff73"
+    },
+    {
+      "platform": "pdd",
+      "product_id": "pd7583",
+      "title": "无线蓝牙 蓝牙耳机 降噪版 白色【PDD正品·全国联保】",
+      "price": 250.06,
+      "original_price": null,
+      "sales": 15347,
+      "shop_name": "工厂直供店（百亿补贴）",
+      "shop_rating": 4.25,
+      "url": "https://mobile.yangkeduo.com/goods.html?goods_id=97583",
+      "image_url": "https://via.placeholder.com/160x160/EEE/999?text=PDD%2397583",
+      "fetched_at": 1787291420.281805,
+      "discount_rate": 0.0,
+      "dedup_key": "pdd:pd7583:0058639101ac"
+    }
+  ]
+}
