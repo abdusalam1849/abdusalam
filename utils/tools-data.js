@@ -187,7 +187,7 @@ const TOOLS = [
     iconClass: 'icon-money',
     category: 'finance',
     desc: '等额本息/本金精准计算',
-    isVip: true,
+    isVip: false,
     hot: true,
     users: '62万+'
   },
@@ -198,7 +198,7 @@ const TOOLS = [
     iconClass: 'icon-money',
     category: 'finance',
     desc: '2024最新个税计算标准',
-    isVip: true,
+    isVip: false,
     users: '29万+'
   },
   {
@@ -238,7 +238,7 @@ const TOOLS = [
     iconClass: 'icon-default',
     category: 'text',
     desc: '文本 Base64 编码解码',
-    isVip: true,
+    isVip: false,
     users: '15万+'
   },
   {
@@ -248,8 +248,48 @@ const TOOLS = [
     iconClass: 'icon-default',
     category: 'image',
     desc: '图片取色/RGB/HEX转换',
-    isVip: true,
+    isVip: false,
     users: '12万+'
+  },
+  {
+    id: 'pomodoro',
+    name: '番茄钟计时器',
+    icon: '🍅',
+    iconClass: 'icon-default',
+    category: 'daily',
+    desc: '25分钟专注工作法，高效提升',
+    isVip: false,
+    users: '44万+'
+  },
+  {
+    id: 'base-convert',
+    name: '进制转换器',
+    icon: '🔢',
+    iconClass: 'icon-convert',
+    category: 'calculate',
+    desc: '二进制/八进制/十进制/十六进制互转',
+    isVip: false,
+    users: '21万+'
+  },
+  {
+    id: 'char-count',
+    name: '字数统计器',
+    icon: '📃',
+    iconClass: 'icon-note',
+    category: 'text',
+    desc: '中英文字符/词数/段落一键统计',
+    isVip: false,
+    users: '33万+'
+  },
+  {
+    id: 'discount',
+    name: '折扣计算器',
+    icon: '🏷️',
+    iconClass: 'icon-money',
+    category: 'finance',
+    desc: '原价/折扣/满减一键算到手价',
+    isVip: false,
+    users: '28万+'
   }
 ]
 

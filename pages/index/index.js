@@ -2,7 +2,7 @@ Page({
   data: {
     searchKeyword: '',
     banners: [
-      { id: 1, title: '新版上线', desc: '20+ 工具全新升级', color: 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)' },
+      { id: 1, title: '新版上线', desc: '24+ 工具全新升级，更多实用功能', color: 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)' },
       { id: 2, title: '会员特惠', desc: '解锁全部VIP工具', color: 'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)' },
       { id: 3, title: '年度推荐', desc: '百万用户的共同选择', color: 'linear-gradient(135deg, #06b6d4 0%, #0e7490 100%)' }
     ],
@@ -11,7 +11,7 @@ Page({
     historyTools: [],
     favorites: [],
     stats: {
-      toolCount: 20,
+      toolCount: 24,
       categoryCount: 6,
       userCount: '1280万+'
     }
@@ -28,8 +28,9 @@ Page({
 
   initData() {
     const { getHotTools, TOOLS } = require('../../utils/tools-data.js')
-    const hot = getHotTools(8)
-    const quick = TOOLS.slice(0, 8)
+    const hot = getHotTools(6)
+    const quickIds = ['calculator','bmi','unit-convert','currency','notes','countdown','qr-code','random','pomodoro','discount','base-convert','char-count']
+    const quick = quickIds.map(id => TOOLS.find(t => t.id === id)).filter(Boolean)
     this.setData({
       hotTools: hot,
       quickTools: quick

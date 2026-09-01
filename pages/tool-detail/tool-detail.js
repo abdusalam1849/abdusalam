@@ -121,7 +121,61 @@ Page({
     // 时间戳
     tsNow: 0,
     tsNowMs: 0,
-    tsFull: ''
+    tsFull: '',
+    // 汇率换算
+    curFrom: 'CNY',
+    curTo: 'USD',
+    curValue: '',
+    curResult: null,
+    curFromIndex: 0,
+    curToIndex: 1,
+    curList: ['CNY','USD','EUR','JPY','GBP','KRW','HKD','AUD','CAD','SGD'],
+    curNames: ['人民币 ¥','美元 $','欧元 €','日元 ¥','英镑 £','韩元 ₩','港币 HK$','澳元 A$','加元 C$','新加坡元 S$'],
+    // Base64
+    b64Mode: 'encode',
+    b64Input: '',
+    b64Result: null,
+    b64Error: null,
+    // 颜色取色器
+    colorR: 124,
+    colorG: 58,
+    colorB: 237,
+    colorHex: '#7C3AED',
+    colorRgb: 'rgb(124, 58, 237)',
+    colorHsl: 'hsl(255, 83%, 58%)',
+    colorCmyk: 'cmyk(48%, 75%, 0%, 7%)',
+    // 天气
+    weatherData: null,
+    // 指南针
+    compassAngle: 0,
+    compassDir: '北',
+    // 个税
+    taxIncome: '',
+    taxSocIns: '',
+    taxThreshold: 5000,
+    taxResult: null,
+    // 番茄钟
+    pomoMode: 'work',
+    pomoWorkMin: 25,
+    pomoBreakMin: 5,
+    pomoRemain: 25 * 60,
+    pomoRunning: false,
+    pomoCompleted: 0,
+    pomoDisplay: '25:00',
+    pomoPct: 0,
+    // 进制转换
+    baseValue: '',
+    baseFrom: 10,
+    baseResult: null,
+    // 字数统计
+    charText: '',
+    charStats: null,
+    // 折扣计算
+    discPrice: '',
+    discDiscount: 85,
+    discCoupon: '',
+    discFullCut: '',
+    discResult: null
   },
 
   onLoad(options) {
@@ -151,10 +205,23 @@ Page({
       this.refreshTs()
       this._tsTimer = setInterval(() => this.refreshTs(), 1000)
     }
+    // 番茄钟初始化
+    if (tool.id === 'pomodoro') {
+      this.updatePomoDisplay()
+    }
+    // 天气初始化
+    if (tool.id === 'weather') {
+      this.initWeather()
+    }
+    // 颜色初始化
+    if (tool.id === 'color') {
+      this.updateColor()
+    }
   },
 
   onUnload() {
     if (this._tsTimer) clearInterval(this._tsTimer)
+    if (this._pomoTimer) clearInterval(this._pomoTimer)
   },
 
   refreshTs() {
@@ -519,5 +586,319 @@ Page({
   },
 
   /* ============ VIP ============ */
-  goVip() { wx.switchTab({ url: '/pages/cart/cart' }) }
+  goVip() { wx.switchTab({ url: '/pages/cart/cart' }) },
+
+  /* ============ 汇率换算 ============ */
+  curPickFrom(e) {
+    const idx = parseInt(e.detail.value)
+    this.setData({ curFrom: this.data.curList[idx], curFromIndex: idx })
+    this.calcCurrency()
+  },
+  curPickTo(e) {
+    const idx = parseInt(e.detail.value)
+    this.setData({ curTo: this.data.curList[idx], curToIndex: idx })
+    this.calcCurrency()
+  },
+  curInput(e) {
+    this.setData({ curValue: e.detail.value })
+    this.calcCurrency()
+  },
+  calcCurrency() {
+    const v = parseFloat(this.data.curValue)
+    if (!v) { this.setData({ curResult: null }); return }
+    const rates = { CNY:1, USD:0.1398, EUR:0.1276, JPY:21.52, GBP:0.1098, KRW:186.5, HKD:1.087, AUD:0.2103, CAD:0.1901, SGD:0.1876 }
+    const usd = v / (rates[this.data.curFrom] || 1)
+    const out = usd * (rates[this.data.curTo] || 1)
+    this.setData({ curResult: { value: out.toFixed(2), from: this.data.curFrom, to: this.data.curTo, rate: ((rates[this.data.curTo]||1) / (rates[this.data.curFrom]||1)).toFixed(4) } })
+  },
+
+  /* ============ Base64 ============ */
+  setB64Mode(e) {
+    this.setData({ b64Mode: e.currentTarget.dataset.type, b64Result: null, b64Error: null })
+  },
+  b64Input(e) {
+    this.setData({ b64Input: e.detail.value, b64Result: null, b64Error: null })
+  },
+  runB64() {
+    const v = this.data.b64Input.trim()
+    if (!v) { this.setData({ b64Error: '请输入内容' }); return }
+    try {
+      let result
+      if (this.data.b64Mode === 'encode') {
+        // UTF-8 safe encode
+        const bytes = []
+        for (let i = 0; i < v.length; i++) {
+          const c = v.charCodeAt(i)
+          if (c < 128) bytes.push(c)
+          else if (c < 2048) { bytes.push(192 | (c >> 6)); bytes.push(128 | (c & 63)) }
+          else { bytes.push(224 | (c >> 12)); bytes.push(128 | ((c >> 6) & 63)); bytes.push(128 | (c & 63)) }
+        }
+        result = wx.arrayBufferToBase64(new Uint8Array(bytes).buffer)
+      } else {
+        const buf = wx.base64ToArrayBuffer(v)
+        const bytes = new Uint8Array(buf)
+        let result = ''
+        for (let i = 0; i < bytes.length; i++) result += String.fromCharCode(bytes[i])
+        result = decodeURIComponent(escape(result))
+      }
+      this.setData({ b64Result: result, b64Error: null })
+    } catch(err) {
+      this.setData({ b64Error: '操作失败，请检查输入', b64Result: null })
+    }
+  },
+  copyB64() {
+    if (this.data.b64Result) wx.setClipboardData({ data: this.data.b64Result })
+  },
+
+  /* ============ 颜色取色器 ============ */
+  colorSlider(e) {
+    const { r, g, b } = this.data
+    const type = e.currentTarget.dataset.type
+    const val = parseInt(e.detail.value)
+    const data = {}
+    if (type === 'r') data.colorR = val
+    else if (type === 'g') data.colorG = val
+    else data.colorB = val
+    this.setData(data)
+    this.updateColor()
+  },
+  updateColor() {
+    const { colorR: r, colorG: g, colorB: b } = this.data
+    const hex = '#' + [r, g, b].map(x => {
+      const h = Math.round(x).toString(16)
+      return h.length === 1 ? '0' + h : h
+    }).join('').toUpperCase()
+    // HSL
+    const rr = r/255, gg = g/255, bb = b/255
+    const mx = Math.max(rr, gg, bb), mn = Math.min(rr, gg, bb)
+    let h, s, l = (mx + mn) / 2
+    if (mx === mn) { h = 0; s = 0 }
+    else {
+      const d = mx - mn
+      s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn)
+      if (mx === rr) h = ((gg - bb) / d + (gg < bb ? 6 : 0)) / 6
+      else if (mx === gg) h = ((bb - rr) / d + 2) / 6
+      else h = ((rr - gg) / d + 4) / 6
+    }
+    // CMYK
+    const k = 1 - Math.max(rr, gg, bb)
+    let c = 0, m = 0, y = 0
+    if (k < 1) {
+      c = Math.round(((1 - rr - k) / (1 - k)) * 100)
+      m = Math.round(((1 - gg - k) / (1 - k)) * 100)
+      y = Math.round(((1 - bb - k) / (1 - k)) * 100)
+    }
+    this.setData({
+      colorHex: hex,
+      colorRgb: `rgb(${r}, ${g}, ${b})`,
+      colorHsl: `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`,
+      colorCmyk: `cmyk(${c}%, ${m}%, ${y}%, ${Math.round(k * 100)}%)`
+    })
+  },
+  copyColor(e) {
+    wx.setClipboardData({ data: e.currentTarget.dataset.val })
+  },
+
+  /* ============ 天气 ============ */
+  initWeather() {
+    const days = [
+      { day: '今天', icon: '☀️', temp: 28, desc: '晴', wind: '东南风 3级', humidity: '45%' },
+      { day: '明天', icon: '⛅', temp: 26, desc: '多云转晴', wind: '东风 2级', humidity: '52%' },
+      { day: '后天', icon: '🌧️', temp: 22, desc: '小雨', wind: '北风 4级', humidity: '78%' },
+      { day: '周四', icon: '⛅', temp: 24, desc: '多云', wind: '南风 3级', humidity: '60%' },
+      { day: '周五', icon: '☀️', temp: 30, desc: '晴朗', wind: '东南风 2级', humidity: '38%' },
+      { day: '周六', icon: '🌩️', temp: 25, desc: '雷阵雨', wind: '西北风 4级', humidity: '82%' },
+      { day: '周日', icon: '⛅', temp: 27, desc: '多云转晴', wind: '东风 3级', humidity: '50%' }
+    ]
+    const indices = [
+      { label: '穿衣', value: '短袖短裤', icon: '👕' },
+      { label: '紫外线', value: '中等', icon: '☀️' },
+      { label: '运动', value: '适宜', icon: '🏃' },
+      { label: '洗车', value: '适宜', icon: '🚿' },
+      { label: '感冒', value: '少发', icon: '🤧' }
+    ]
+    this.setData({ weatherData: { today: days[0], forecast: days, indices } })
+  },
+
+  /* ============ 指南针 ============ */
+  compassRandom() {
+    const angle = Math.floor(Math.random() * 360)
+    const dirs = ['北','东北','东','东南','南','西南','西','西北']
+    const idx = Math.round(angle / 45) % 8
+    this.setData({ compassAngle: angle, compassDir: dirs[idx] })
+  },
+
+  /* ============ 个税 ============ */
+  taxInput(e) {
+    this.setData({ [e.currentTarget.dataset.type]: e.detail.value })
+  },
+  calcTax() {
+    const inc = parseFloat(this.data.taxIncome)
+    const soc = parseFloat(this.data.taxSocIns) || 0
+    const th = parseFloat(this.data.taxThreshold) || 5000
+    if (!inc || inc <= 0) { wx.showToast({ title: '请输入正确的月薪', icon: 'none' }); return }
+    const taxable = Math.max(0, inc - soc - th)
+    let rate, deduct
+    if (taxable <= 0) { rate = 0; deduct = 0 }
+    else if (taxable <= 3000) { rate = 3; deduct = 0 }
+    else if (taxable <= 12000) { rate = 10; deduct = 210 }
+    else if (taxable <= 25000) { rate = 20; deduct = 1410 }
+    else if (taxable <= 35000) { rate = 25; deduct = 2660 }
+    else if (taxable <= 55000) { rate = 30; deduct = 4410 }
+    else if (taxable <= 80000) { rate = 35; deduct = 7160 }
+    else { rate = 45; deduct = 15160 }
+    const taxAmt = Math.max(0, taxable * rate / 100 - deduct)
+    this.setData({
+      taxResult: {
+        taxable: taxable.toFixed(2), rate, deduct: deduct.toFixed(2),
+        tax: taxAmt.toFixed(2), net: (inc - soc - taxAmt).toFixed(2)
+      }
+    })
+  },
+
+  /* ============ 番茄钟 ============ */
+  updatePomoDisplay() {
+    const mm = String(Math.floor(this.data.pomoRemain / 60)).padStart(2, '0')
+    const ss = String(this.data.pomoRemain % 60).padStart(2, '0')
+    const total = this.data.pomoMode === 'work' ? this.data.pomoWorkMin * 60 : this.data.pomoBreakMin * 60
+    const pct = total > 0 ? (1 - this.data.pomoRemain / total) : 0
+    this.setData({ pomoDisplay: mm + ':' + ss, pomoPct: pct })
+  },
+  pomoStart() {
+    if (this.data.pomoRunning) return
+    this.setData({ pomoRunning: true })
+    this._pomoTimer = setInterval(() => {
+      let remain = this.data.pomoRemain - 1
+      if (remain <= 0) {
+        clearInterval(this._pomoTimer)
+        if (this.data.pomoMode === 'work') {
+          this.setData({
+            pomoMode: 'break', pomoRemain: this.data.pomoBreakMin * 60,
+            pomoRunning: false, pomoCompleted: this.data.pomoCompleted + 1
+          })
+          wx.vibrateShort && wx.vibrateShort({ type: 'heavy' })
+          wx.showToast({ title: '🍅 专注完成！休息一下', icon: 'none' })
+        } else {
+          this.setData({ pomoMode: 'work', pomoRemain: this.data.pomoWorkMin * 60, pomoRunning: false })
+          wx.showToast({ title: '☕ 休息结束，继续专注', icon: 'none' })
+        }
+      } else {
+        this.setData({ pomoRemain: remain })
+      }
+      this.updatePomoDisplay()
+    }, 1000)
+    this.updatePomoDisplay()
+  },
+  pomoPause() {
+    clearInterval(this._pomoTimer)
+    this.setData({ pomoRunning: false })
+    this.updatePomoDisplay()
+  },
+  pomoReset() {
+    clearInterval(this._pomoTimer)
+    this.setData({
+      pomoMode: 'work', pomoRemain: this.data.pomoWorkMin * 60,
+      pomoRunning: false
+    })
+    this.updatePomoDisplay()
+  },
+  pomoSetMin(e) {
+    const m = parseInt(e.currentTarget.dataset.min)
+    clearInterval(this._pomoTimer)
+    this.setData({ pomoWorkMin: m, pomoRemain: m * 60, pomoRunning: false, pomoMode: 'work' })
+    this.updatePomoDisplay()
+  },
+
+  /* ============ 进制转换 ============ */
+  setBaseFrom(e) {
+    this.setData({ baseFrom: parseInt(e.currentTarget.dataset.base), baseResult: null })
+  },
+  baseInput(e) {
+    this.setData({ baseValue: e.detail.value })
+    this.runBase()
+  },
+  runBase() {
+    const v = this.data.baseValue.trim()
+    if (!v) { this.setData({ baseResult: null }); return }
+    let dec
+    try {
+      if (this.data.baseFrom === 16) dec = parseInt(v, 16)
+      else if (this.data.baseFrom === 8) dec = parseInt(v, 8)
+      else if (this.data.baseFrom === 2) dec = parseInt(v, 2)
+      else dec = parseInt(v, 10)
+      if (isNaN(dec)) throw 'err'
+    } catch(e) { this.setData({ baseResult: null }); return }
+    this.setData({
+      baseResult: {
+        b: dec.toString(2), o: dec.toString(8),
+        d: dec.toString(10), h: dec.toString(16).toUpperCase()
+      }
+    })
+  },
+  copyBaseVal(e) {
+    wx.setClipboardData({ data: e.currentTarget.dataset.val })
+  },
+
+  /* ============ 字数统计 ============ */
+  charInput(e) {
+    const text = e.detail.value
+    this.setData({ charText: text })
+    this.updateCharStats(text)
+  },
+  updateCharStats(text) {
+    if (!text) { this.setData({ charStats: null }); return }
+    const cn = (text.match(/[\u4e00-\u9fa5]/g) || []).length
+    const en = (text.match(/[a-zA-Z]/g) || []).length
+    const num = (text.match(/[0-9]/g) || []).length
+    const space = (text.match(/\s/g) || []).length
+    const punct = (text.match(/[，。！？、；：""''（）【】《》.,!?;:'"()\[\]<>]/g) || []).length
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0
+    const lines = text ? text.split('\n').length : 0
+    const para = text ? text.split(/\n\s*\n/).filter(p => p.trim()).length : 0
+    // 字节计算（UTF-8）
+    let bytes = 0
+    for (let i = 0; i < text.length; i++) {
+      const c = text.charCodeAt(i)
+      if (c < 128) bytes += 1
+      else if (c < 2048) bytes += 2
+      else bytes += 3
+    }
+    this.setData({
+      charStats: {
+        total: text.length, cn, en, num, space, punct,
+        words, lines, para, bytes
+      }
+    })
+  },
+  clearChar() {
+    this.setData({ charText: '', charStats: null })
+  },
+
+  /* ============ 折扣计算 ============ */
+  discInput(e) {
+    this.setData({ [e.currentTarget.dataset.type]: e.detail.value })
+    this.calcDisc()
+  },
+  discSlider(e) {
+    this.setData({ discDiscount: parseInt(e.detail.value) })
+    this.calcDisc()
+  },
+  calcDisc() {
+    const p = parseFloat(this.data.discPrice)
+    if (!p || p <= 0) { this.setData({ discResult: null }); return }
+    const dp = p * this.data.discDiscount / 100
+    const coupon = parseFloat(this.data.discCoupon) || 0
+    let cutAmt = 0
+    const m = this.data.discFullCut.match(/(\d+)-(\d+)/)
+    if (m) { const full = +m[1], cut = +m[2]; if (dp >= full) cutAmt = cut }
+    const final = Math.max(0, dp - coupon - cutAmt)
+    const saved = p - final
+    this.setData({
+      discResult: {
+        discPrice: dp.toFixed(2), couponAmt: coupon.toFixed(2),
+        cutAmt: cutAmt.toFixed(2), totalOff: saved.toFixed(2),
+        final: final.toFixed(2), offPct: Math.round(saved / p * 100)
+      }
+    })
+  }
 })
