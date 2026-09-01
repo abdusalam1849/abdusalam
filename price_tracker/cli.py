@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import sys
 from typing import List
 
@@ -63,11 +64,13 @@ def _print_rich(result: dict) -> None:
     comp = result["comparison"]
 
     # 概览
+    anomaly_n = result.get("anomaly_count", 0)
     console.print(Panel.fit(
         f"[bold cyan]关键词:[/] {result['keyword']}   "
         f"[bold]模式:[/] {result['mode']}   "
         f"[bold]原始采集:[/] {result['raw_count']}   "
-        f"[bold]去重后:[/] {result['cleaned_count']}\n"
+        f"[bold]去重后:[/] {result['cleaned_count']}"
+        + (f"   [bold red]异常价:[/] {anomaly_n}" if anomaly_n else "") + "\n"
         f"均价 [green]{_fmt_price(stats['avg_price'])}[/]  "
         f"最低 [green]{_fmt_price(stats['min_price'])}[/]  "
         f"最高 [yellow]{_fmt_price(stats['max_price'])}[/]  "
@@ -130,7 +133,7 @@ def _print_rich(result: dict) -> None:
     # 性价比推荐
     recs = result["recommendations"]
     if recs:
-        t = Table(title="★ 性价比推荐 TOP5", border_style="magenta")
+        t = Table(title=f"★ 性价比推荐 TOP{len(recs)}", border_style="magenta")
         t.add_column("排名", style="bold magenta")
         t.add_column("平台")
         t.add_column("商品")
@@ -145,6 +148,45 @@ def _print_rich(result: dict) -> None:
                       p["title"][:30], _fmt_price(p["price"]),
                       _fmt_sales(p["sales"]), str(p["shop_score"]),
                       f"{r['value_score']}", " ".join(r["tags"]))
+        console.print(t)
+
+    # 异常价提醒
+    anomalies = result.get("anomalies", [])
+    if anomalies:
+        t = Table(title=f"⚠ 疑似异常价 ({len(anomalies)})", border_style="red")
+        t.add_column("平台", width=6)
+        t.add_column("商品")
+        t.add_column("价格", justify="right", style="red bold")
+        t.add_column("边界", justify="right")
+        t.add_column("原因", style="yellow")
+        for a in anomalies:
+            p = a["product"]
+            t.add_row(PLATFORM_LABEL.get(p["platform"], p["platform"]),
+                      p["title"][:28], _fmt_price(p["price"]),
+                      _fmt_price(a["bound"]), a["reason"][:40])
+        console.print(t)
+
+    # 价格预测
+    forecasts = result.get("forecasts", [])
+    if forecasts:
+        t = Table(title="📈 价格趋势预测 (EMA + 线性回归)", border_style="blue")
+        t.add_column("平台", width=6)
+        t.add_column("商品")
+        t.add_column("现价", justify="right", style="green")
+        t.add_column("趋势", style="bold")
+        t.add_column("下期EMA", justify="right")
+        t.add_column("斜率%", justify="right")
+        t.add_column("预测(3期)", justify="right", style="dim")
+        t.add_column("建议", style="cyan")
+        for f in forecasts[:10]:
+            trend_color = {"下行": "green", "上行": "red", "平稳": "yellow"}.get(f["trend"], "white")
+            t.add_row(PLATFORM_LABEL.get(f["platform"], f["platform"]),
+                      f["title"][:24], _fmt_price(f["price"]),
+                      f"[{trend_color}]{f['trend']}[/]",
+                      _fmt_price(f["next_ema"]),
+                      f"{f['slope_pct']:+.2f}%",
+                      " ".join(_fmt_price(x) for x in f["forecast"]),
+                      f["suggestion"])
         console.print(t)
 
     # 平台综合性价比排名
@@ -183,11 +225,44 @@ def _print_plain(result: dict) -> None:
               f"{_fmt_price(p['price'])}  {p['title'][:30]}  "
               f"销{_fmt_sales(p['sales'])}  评{p['shop_score']}  {p['shop_name']}")
 
-    print("\n=== 性价比推荐 TOP5 ===")
+    print(f"\n=== 性价比推荐 TOP{len(result['recommendations'])} ===")
     for r in result["recommendations"]:
         p = r["product"]
         print(f"#{r['rank']} [{PLATFORM_LABEL.get(p['platform'], p['platform'])}] "
               f"{_fmt_price(p['price'])}  {p['title'][:24]}  分 {r['value_score']}  {','.join(r['tags'])}")
+
+    anomalies = result.get("anomalies", [])
+    if anomalies:
+        print(f"\n=== 疑似异常价 ({len(anomalies)}) ===")
+        for a in anomalies:
+            p = a["product"]
+            print(f"[{PLATFORM_LABEL.get(p['platform'], p['platform'])}] "
+                  f"{_fmt_price(p['price'])}  {p['title'][:24]}  {a['reason'][:40]}")
+
+    forecasts = result.get("forecasts", [])
+    if forecasts:
+        print(f"\n=== 价格趋势预测 ({len(forecasts[:10])}) ===")
+        for f in forecasts[:10]:
+            print(f"[{PLATFORM_LABEL.get(f['platform'], f['platform'])}] "
+                  f"{_fmt_price(f['price'])}  {f['trend']}  下期EMA {_fmt_price(f['next_ema'])}  "
+                  f"斜率{f['slope_pct']:+.2f}%  -> {f['suggestion']}")
+
+
+def export_csv(result: dict, path: str) -> None:
+    """导出商品明细为 CSV(UTF-8 BOM,Excel 友好)。"""
+    import csv
+    with open(path, "w", encoding="utf-8-sig", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["排名", "平台", "商品名称", "价格", "原价", "销量",
+                    "店铺评分", "店铺", "规格指纹", "链接", "标签"])
+        for i, p in enumerate(result["products"], 1):
+            w.writerow([
+                i, PLATFORM_LABEL.get(p["platform"], p["platform"]),
+                p["title"], p["price"], p.get("original_price") or "",
+                p["sales"], p["shop_score"], p["shop_name"],
+                p.get("spec_fingerprint", ""), p["url"],
+                " ".join(p.get("tags", [])),
+            ])
 
 
 def main(argv: List[str] = None) -> int:
@@ -197,15 +272,26 @@ def main(argv: List[str] = None) -> int:
     )
     parser.add_argument("keyword", nargs="?", help="搜索关键词")
     parser.add_argument("--platforms", nargs="+", default=["jd", "taobao", "pdd"],
-                        choices=["jd", "taobao", "pdd"], help="采集平台")
+                        choices=["jd", "taobao", "pdd", "pdd_openapi"], help="采集平台")
     parser.add_argument("--limit", type=int, default=15, help="每个平台采集数量")
     parser.add_argument("--mode", choices=["mock", "live"], default="mock",
                         help="mock=模拟数据(默认) live=真实抓取(需配置cookie)")
     parser.add_argument("--seed", type=int, default=None, help="mock随机种子(可复现)")
     parser.add_argument("--history-days", type=int, default=14, help="历史价格天数")
+    parser.add_argument("--top-n", type=int, default=5, help="性价比推荐数量")
+    parser.add_argument("--filter-outliers", action="store_true",
+                        help="直接剔除异常价商品(默认仅标注)")
+    parser.add_argument("--no-anomaly", action="store_true",
+                        help="跳过异常价检测")
+    parser.add_argument("--verbose", action="store_true",
+                        help="显示采集重试/限速等详细日志")
     parser.add_argument("--output", "-o", help="结果导出JSON文件路径")
+    parser.add_argument("--csv", help="商品明细导出CSV文件路径")
     parser.add_argument("--demo", action="store_true", help="运行内置示例数据")
     args = parser.parse_args(argv)
+
+    if args.verbose:
+        logging.getLogger("price_tracker").setLevel(logging.INFO)
 
     if args.demo:
         result = build_sample_result()
@@ -219,6 +305,9 @@ def main(argv: List[str] = None) -> int:
             mode=args.mode,
             seed=args.seed,
             history_days=args.history_days,
+            detect_anomalies=not args.no_anomaly,
+            filter_anomalies=args.filter_outliers,
+            top_n=args.top_n,
         )
 
     print_result(result)
@@ -226,7 +315,10 @@ def main(argv: List[str] = None) -> int:
     if args.output:
         with open(args.output, "w", encoding="utf-8") as f:
             json.dump(result, f, ensure_ascii=False, indent=2)
-        print(f"\n结果已导出: {args.output}")
+        print(f"\n结果已导出(JSON): {args.output}")
+    if args.csv:
+        export_csv(result, args.csv)
+        print(f"商品明细已导出(CSV): {args.csv}")
     return 0
 
 

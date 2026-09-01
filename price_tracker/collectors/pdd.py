@@ -26,18 +26,26 @@ class PDDCollector(BaseCollector):
                                  seed=hash(keyword) & 0xffff)
 
     def search(self, keyword: str, limit: int = 20) -> List[Product]:
-        """live 抓取拼多多搜索结果(移动端 H5 API)。"""
-        headers = {
-            "User-Agent": ("Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) "
-                            "PDDMobile/6.45.0"),
-            "Cookie": self.cookie,
-            "Referer": "https://mobile.yangkeduo.com/search_result.html",
-            "Content-Type": "application/json",
-        }
-        params = {"keyword": keyword, "page": 1, "size": limit, "sort": "price_asc"}
-        resp = requests.get(self.SEARCH_URL, params=params, headers=headers, timeout=10)
-        resp.raise_for_status()
-        return self._parse_json(resp.json(), limit)
+        """live 抓取拼多多搜索结果(移动端 H5 API,带重试与UA轮换)。"""
+        ua = self.pick_ua()
+
+        def _do():
+            headers = {
+                "User-Agent": ua + " PDDMobile/6.45.0",
+                "Cookie": self.cookie,
+                "Referer": "https://mobile.yangkeduo.com/search_result.html",
+                "Content-Type": "application/json",
+            }
+            params = {"keyword": keyword, "page": 1, "size": limit, "sort": "price_asc"}
+            resp = requests.get(self.SEARCH_URL, params=params, headers=headers, timeout=10)
+            resp.raise_for_status()
+            return resp
+        resp = self.request_with_retry(_do, context=f"PDD搜索 '{keyword}'")
+        try:
+            return self._parse_json(resp.json(), limit)
+        except ValueError as e:
+            # 响应非 JSON(可能是风控页),抛出让上层回退 mock
+            raise RuntimeError(f"PDD响应非JSON: {e}")
 
     def _parse_json(self, data: dict, limit: int) -> List[Product]:
         items = data.get("data", {}).get("items", []) or data.get("items", [])

@@ -26,17 +26,21 @@ class JDCollector(BaseCollector):
         return generate_products(keyword, Platform.JD, limit, seed=hash(keyword) & 0xffff)
 
     def search(self, keyword: str, limit: int = 20) -> List[Product]:
-        """live 抓取: 解析京东搜索结果页商品列表。"""
-        headers = {
-            "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                            "AppleWebKit/537.36 (KHTML, like Gecko) "
-                            "Chrome/120.0 Safari/537.36"),
-            "Referer": "https://www.jd.com/",
-            "Cookie": self.cookie,
-        }
-        params = {"keyword": keyword, "enc": "utf-8", "psort": "3", "page": 1}
-        resp = requests.get(self.SEARCH_URL, params=params, headers=headers, timeout=10)
-        resp.raise_for_status()
+        """live 抓取: 解析京东搜索结果页商品列表(带重试与UA轮换)。"""
+        ua = self.pick_ua()
+
+        def _do():
+            headers = {
+                "User-Agent": ua,
+                "Referer": "https://www.jd.com/",
+                "Cookie": self.cookie,
+                "Accept-Language": "zh-CN,zh;q=0.9",
+            }
+            params = {"keyword": keyword, "enc": "utf-8", "psort": "3", "page": 1}
+            resp = requests.get(self.SEARCH_URL, params=params, headers=headers, timeout=10)
+            resp.raise_for_status()
+            return resp
+        resp = self.request_with_retry(_do, context=f"JD搜索 '{keyword}'")
         return self._parse_html(resp.text, keyword, limit)
 
     def _parse_html(self, html: str, keyword: str, limit: int) -> List[Product]:

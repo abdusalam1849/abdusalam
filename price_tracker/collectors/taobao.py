@@ -31,22 +31,27 @@ class TaobaoCollector(BaseCollector):
                                   seed=hash(keyword) & 0xffff)
 
     def search(self, keyword: str, limit: int = 20) -> List[Product]:
-        """live 抓取淘宝搜索结果。"""
-        headers = {
-            "User-Agent": ("Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) "
-                            "AppleWebKit/605.1.15 Safari/604.1"),
-            "Cookie": self.cookie,
-            "Referer": "https://s.taobao.com/",
-        }
-        params = {
-            "q": keyword,
-            "spm": "a212z0.0.0.0",
-            "tab": "all",
-            "app": "search",
-        }
-        resp = requests.get("https://s.taobao.com/search",
-                            params=params, headers=headers, timeout=10)
-        resp.raise_for_status()
+        """live 抓取淘宝搜索结果(带重试与UA轮换)。"""
+        ua = self.pick_ua()
+
+        def _do():
+            headers = {
+                "User-Agent": ua,
+                "Cookie": self.cookie,
+                "Referer": "https://s.taobao.com/",
+                "Accept-Language": "zh-CN,zh;q=0.9",
+            }
+            params = {
+                "q": keyword,
+                "spm": "a212z0.0.0.0",
+                "tab": "all",
+                "app": "search",
+            }
+            resp = requests.get("https://s.taobao.com/search",
+                                params=params, headers=headers, timeout=10)
+            resp.raise_for_status()
+            return resp
+        resp = self.request_with_retry(_do, context=f"淘宝搜索 '{keyword}'")
         return self._parse_html(resp.text, limit)
 
     def _parse_html(self, html: str, limit: int) -> List[Product]:

@@ -116,20 +116,29 @@ function renderProducts(products) {
     return;
   }
   const maxSales = Math.max(...products.map(p => p.sales), 1);
-  const rows = products.map((p, i) => `
+  const rows = products.map((p, i) => {
+    const cpp = p.cross_platform_prices || [];
+    const cppCell = cpp.length > 1
+      ? cpp.map(c => `<span class="platform-tag ${c.platform}">${PLATFORM_LABEL[c.platform] || c.platform}</span> ${fmtPrice(c.price)}`).join("<br>")
+      : `<span style="color:var(--muted)">单平台</span>`;
+    return `
     <tr>
       <td class="num">${i + 1}</td>
       <td>${platformTag(p.platform)}</td>
-      <td><div style="max-width:280px">${escapeHtml(p.title)}</div>
-          <div style="color:var(--muted);font-size:11px;margin-top:2px">${escapeHtml(p.shop_name)} ${p.tags && p.tags.length ? "· " + p.tags.map(t => `<span class="tag">${t}</span>`).join("") : ""}</div></td>
+      <td><div style="max-width:260px">${escapeHtml(p.title)}</div>
+          <div style="color:var(--muted);font-size:11px;margin-top:2px">${escapeHtml(p.shop_name)} ${p.tags && p.tags.length ? "· " + p.tags.map(t => `<span class="tag">${t}</span>`).join("") : ""}</div>
+          ${p.spec_fingerprint ? `<div style="color:var(--muted);font-size:10px;margin-top:1px">指纹: ${escapeHtml(p.spec_fingerprint)}</div>` : ""}
+      </td>
       <td class="num"><span class="price">${fmtPrice(p.price)}</span>${p.original_price ? `<span class="price old">${fmtPrice(p.original_price)}</span>` : ""}</td>
       <td class="num">${fmtSales(p.sales)}</td>
       <td class="num">${p.shop_score?.toFixed(2)}</td>
+      <td style="font-size:11px">${cppCell}</td>
       <td>${p.url ? `<a href="${p.url}" target="_blank" rel="noopener">查看↗</a>` : "-"}</td>
-    </tr>`).join("");
+    </tr>`;
+  }).join("");
   $("#productTable").innerHTML = `
     <table>
-      <thead><tr><th class="num">#</th><th>平台</th><th>商品 / 店铺</th><th class="num">价格</th><th class="num">销量</th><th class="num">店评</th><th>链接</th></tr></thead>
+      <thead><tr><th class="num">#</th><th>平台</th><th>商品 / 店铺 / 指纹</th><th class="num">价格</th><th class="num">销量</th><th class="num">店评</th><th>跨平台同款</th><th>链接</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
@@ -229,6 +238,55 @@ function renderRecommendations(recs) {
   }).join("");
 }
 
+// ===== 异常价提醒 =====
+function renderAnomalies(anomalies) {
+  const box = $("#anomalies");
+  if (!box) return;
+  if (!anomalies || !anomalies.length) {
+    box.innerHTML = `<div class="empty">未检测到异常价格</div>`;
+    return;
+  }
+  box.innerHTML = `<table>
+    <thead><tr><th>平台</th><th>商品</th><th class="num">价格</th><th class="num">边界</th><th>类型</th><th>原因</th></tr></thead>
+    <tbody>${anomalies.map(a => {
+      const p = a.product;
+      const sideLabel = a.side === "low" ? "低价异常" : "高价异常";
+      const sideCls = a.side === "low" ? "tag hot" : "tag";
+      return `<tr>
+        <td>${platformTag(p.platform)}</td>
+        <td>${escapeHtml(p.title).slice(0, 28)}</td>
+        <td class="num price">${fmtPrice(p.price)}</td>
+        <td class="num">${fmtPrice(a.bound)}</td>
+        <td><span class="${sideCls}">${sideLabel}</span></td>
+        <td style="color:var(--muted);font-size:12px">${escapeHtml(a.reason)}</td>
+      </tr>`;
+    }).join("")}</tbody></table>`;
+}
+
+// ===== 价格预测 =====
+function renderForecasts(forecasts) {
+  const box = $("#forecasts");
+  if (!box) return;
+  if (!forecasts || !forecasts.length) {
+    box.innerHTML = `<div class="empty">无足够历史数据做预测</div>`;
+    return;
+  }
+  const trendColor = { "下行": "var(--good)", "上行": "var(--bad)", "平稳": "var(--warn)" };
+  box.innerHTML = `<table>
+    <thead><tr><th>平台</th><th>商品</th><th class="num">现价</th><th>趋势</th>
+    <th class="num">下期EMA</th><th class="num">斜率</th><th class="num">预测3期</th><th>建议</th></tr></thead>
+    <tbody>${forecasts.slice(0, 12).map(f => `<tr>
+      <td>${platformTag(f.platform)}</td>
+      <td>${escapeHtml(f.title)}</td>
+      <td class="num price">${fmtPrice(f.price)}</td>
+      <td><b style="color:${trendColor[f.trend] || "var(--text)"}">${f.trend}</b></td>
+      <td class="num">${fmtPrice(f.next_ema)}</td>
+      <td class="num">${f.slope_pct >= 0 ? "+" : ""}${f.slope_pct.toFixed(2)}%</td>
+      <td class="num" style="color:var(--muted)">${f.forecast.map(x => fmtPrice(x)).join(" ")}</td>
+      <td style="color:var(--accent);font-size:12px">${f.suggestion}</td>
+    </tr>`).join("")}</tbody></table>`;
+}
+
 // ===== 主渲染 =====
 function renderResult(result) {
   state.result = result;
@@ -236,6 +294,10 @@ function renderResult(result) {
   $("#modeLabel").textContent = result.mode === "live" ? "真实抓取" : "模拟数据";
   $("#rawCount").textContent = result.raw_count;
   $("#cleanedCount").textContent = result.cleaned_count;
+  const an = result.anomaly_count || 0;
+  const anEl = $("#anomalyCount");
+  if (anEl) anEl.textContent = an;
+  if (anEl && anEl.parentElement) anEl.parentElement.style.display = an ? "block" : "none";
   renderStats(result.stats);
   renderPriceSpread(result.comparison.price_spread);
   renderPlatformComparison(result.comparison);
@@ -243,6 +305,8 @@ function renderResult(result) {
   renderTrend(result.trend);
   renderScatter(result.products);
   renderRecommendations(result.recommendations);
+  renderAnomalies(result.anomalies);
+  renderForecasts(result.forecasts);
   $("#results").style.display = "block";
 }
 
@@ -273,6 +337,8 @@ async function runSearch() {
   const platforms = [...document.querySelectorAll('input[name="platform"]:checked')].map(x => x.value);
   const mode = $("#mode").value;
   const limit = parseInt($("#limit").value) || 15;
+  const filterOutliers = $("#filterOutliers").checked;
+  const topN = parseInt($("#topN").value) || 5;
   $("#results").style.display = "none";
   $("#errorBox").innerHTML = "";
   $("#loading").style.display = "flex";
@@ -281,7 +347,7 @@ async function runSearch() {
     const r = await fetch("/api/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ keyword, platforms, mode, limit }),
+      body: JSON.stringify({ keyword, platforms, mode, limit, filter_anomalies: filterOutliers, top_n: topN }),
     });
     const data = await r.json();
     if (data.error) { renderError(data.error); return; }

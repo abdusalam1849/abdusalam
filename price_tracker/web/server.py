@@ -98,6 +98,9 @@ class Handler(BaseHTTPRequestHandler):
                 mode=payload.get("mode", "mock"),
                 seed=payload.get("seed"),
                 history_days=int(payload.get("history_days", 14)),
+                detect_anomalies=bool(payload.get("detect_anomalies", True)),
+                filter_anomalies=bool(payload.get("filter_anomalies", False)),
+                top_n=int(payload.get("top_n", 5)),
             )
             self._json(result)
         except Exception as e:  # noqa: BLE001

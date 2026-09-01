@@ -43,6 +43,9 @@ class Product:
     image_url: str = ""     # 主图链接
     history: List[float] = field(default_factory=list)  # 历史价格序列(最近->最远)
     tags: List[str] = field(default_factory=list)       # 标签(自营/包邮/百亿补贴等)
+    # 跨平台同款聚合: [{platform, price, url}], 仅在清洗时被同款代表商品填充
+    cross_platform_prices: List[dict] = field(default_factory=list)
+    spec_fingerprint: str = ""  # 规格指纹(清洗阶段填充),便于复核同款判定
 
     def to_dict(self) -> dict:
         d = asdict(self)
