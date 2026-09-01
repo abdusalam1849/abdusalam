@@ -1,0 +1,115 @@
+<view class="container mine-page">
+  <!-- 用户信息区域 -->
+  <view class="profile-section">
+    <view class="profile-bg"></view>
+    <view class="profile-content">
+      <view class="profile-card">
+        <block wx:if="{{hasUserInfo}}">
+          <view class="avatar-wrap">
+            <image wx:if="{{userInfo.avatarUrl}}" class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" />
+            <view wx:else class="avatar avatar-default flex items-center justify-center text-3xl font-bold text-primary">
+              {{userInfo.nickName[0] || 'A'}}
+            </view>
+            <view wx:if="{{isVip}}" class="avatar-vip-badge">👑</view>
+          </view>
+          <view class="flex-1 ml-4">
+            <view class="flex items-center">
+              <view class="username text-xl font-bold text-primary">{{userInfo.nickName}}</view>
+              <view wx:if="{{isVip}}" class="vip-badge">至尊会员</view>
+            </view>
+            <view class="user-desc text-sm text-secondary mt-2">
+              {{isVip ? '👑 已解锁全部特权' : '普通用户 · 开通会员享受更多'}}
+            </view>
+          </view>
+          <view class="logout-btn text-xs text-muted" bindtap="logout">退出</view>
+        </block>
+        <block wx:else>
+          <view class="avatar-wrap">
+            <view class="avatar avatar-login flex items-center justify-center text-3xl">👤</view>
+          </view>
+          <view class="flex-1 ml-4">
+            <view class="username text-xl font-bold text-primary">Hi, 欢迎使用</view>
+            <view class="user-desc text-sm text-secondary mt-2">登录后可以同步数据和收藏</view>
+          </view>
+          <view class="login-btn" bindtap="onLogin">登录</view>
+        </block>
+      </view>
+
+      <!-- 数据概览 -->
+      <view class="overview">
+        <view class="overview-item flex flex-col items-center" bindtap="toggleHistory">
+          <view class="overview-num text-2xl font-bold text-accent">{{historyCount}}</view>
+          <view class="overview-label text-xs text-secondary mt-1">使用记录</view>
+        </view>
+        <view class="overview-divider"></view>
+        <view class="overview-item flex flex-col items-center" bindtap="goFavorites">
+          <view class="overview-num text-2xl font-bold text-warning">{{favoriteCount}}</view>
+          <view class="overview-label text-xs text-secondary mt-1">收藏工具</view>
+        </view>
+        <view class="overview-divider"></view>
+        <view class="overview-item flex flex-col items-center" open-type="share">
+          <view class="overview-num text-2xl font-bold text-success">20+</view>
+          <view class="overview-label text-xs text-secondary mt-1">工具总数</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 使用历史折叠区 -->
+  <view wx:if="{{showHistory && history.length > 0}}" class="history-panel">
+    <view class="flex items-center justify-between px-4 py-2">
+      <view class="text-base font-semibold text-primary">最近使用 ({{history.length}})</view>
+      <view class="text-xs text-secondary" bindtap="toggleHistory">收起 ↑</view>
+    </view>
+    <scroll-view class="history-scroll" scroll-y="{{true}}" style="max-height: 480rpx;">
+      <block wx:for="{{history}}" wx:key="id">
+        <view class="history-row flex items-center">
+          <view class="flex-1 flex items-center" bindtap="goToTool" data-id="{{item.id}}">
+            <view class="tool-icon icon-default" style="width: 64rpx; height: 64rpx; border-radius: 16rpx; font-size: 32rpx;">
+              <text>{{item.icon}}</text>
+            </view>
+            <view class="ml-3">
+              <view class="text-sm text-primary">{{item.name}}</view>
+              <view class="text-xs text-muted mt-1">
+                {{item.time}}
+              </view>
+            </view>
+          </view>
+          <view class="text-xs text-danger px-3 py-1 rounded-full" catchtap="clearHistoryItem" data-id="{{item.id}}">删除</view>
+        </view>
+      </block>
+    </scroll-view>
+  </view>
+
+  <!-- 菜单列表 -->
+  <view class="menu-container">
+    <block wx:for="{{menuGroups}}" wx:for-item="group" wx:key="groupTitle">
+      <view class="menu-group">
+        <view class="group-title text-xs text-muted px-2 pt-3 pb-2">{{group.groupTitle}}</view>
+        <view class="menu-list card" style="margin: 0; padding: 0;">
+          <block wx:for="{{group.items}}" wx:for-item="item" wx:key="id">
+            <view class="menu-item flex items-center" bindtap="onMenuAction" data-action="{{item.action}}">
+              <view class="menu-icon text-lg">{{item.icon}}</view>
+              <view class="flex-1 ml-3">
+                <view class="text-base text-primary">{{item.name}}</view>
+                <view class="text-xs text-secondary mt-1">{{item.desc}}</view>
+              </view>
+              <view class="flex items-center">
+                <view wx:if="{{item.badge}}" class="menu-badge text-xs">{{item.badge}}</view>
+                <view class="menu-arrow text-secondary">›</view>
+              </view>
+            </view>
+          </block>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 底部版权 -->
+  <view class="footer text-xs text-muted text-center mt-5 mb-6">
+    <view>Made with ❤️ by Abdusalam Studio</view>
+    <view class="mt-1 opacity-60">v1.0.0 · © 2024 All Rights Reserved</view>
+  </view>
+
+  <view style="height: 120rpx;"></view>
+</view>

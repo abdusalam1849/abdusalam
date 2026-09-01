@@ -1,0 +1,151 @@
+<view class="container cart-page">
+  <!-- 顶部会员/收藏概览 -->
+  <view class="top-header">
+    <view class="vip-card {{isVip ? 'vip-active' : ''}}">
+      <view class="vip-bg-pattern"></view>
+      <block wx:if="{{isVip}}">
+        <view class="flex items-center">
+          <view class="vip-crown">👑</view>
+          <view class="flex-1 ml-3">
+            <view class="vip-title text-xl font-bold">尊贵会员</view>
+            <view class="vip-sub text-xs opacity-80 mt-1">已解锁全部特权，尽情使用吧！</view>
+          </view>
+          <view class="vip-status text-xs px-3 py-1 rounded-full">已激活</view>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="flex items-center">
+          <view class="vip-crown">👑</view>
+          <view class="flex-1 ml-3">
+            <view class="vip-title text-xl font-bold">升级为会员</view>
+            <view class="vip-sub text-xs opacity-80 mt-1">解锁全部VIP工具 · 云端同步 · 纯净无广</view>
+          </view>
+          <view class="vip-btn text-xs" bindtap="openVipModal">立即开通</view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 收藏统计 -->
+    <view class="fav-stats mt-3">
+      <view class="fav-stat-item">
+        <view class="fav-stat-num text-2xl font-bold text-accent">{{favorites.length}}</view>
+        <view class="fav-stat-label text-xs text-secondary mt-1">已收藏工具</view>
+      </view>
+      <view class="fav-stat-item">
+        <view class="fav-stat-num text-2xl font-bold text-warning">{{isVip ? 20 : 14}}</view>
+        <view class="fav-stat-label text-xs text-secondary mt-1">可使用工具</view>
+      </view>
+      <view class="fav-stat-item">
+        <view class="fav-stat-num text-2xl font-bold text-success">{{isVip ? '∞' : 10}}</view>
+        <view class="fav-stat-label text-xs text-secondary mt-1">收藏上限</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 收藏工具列表 -->
+  <view class="fav-section">
+    <view class="section-header flex items-center justify-between">
+      <view class="flex items-center">
+        <view class="section-title text-lg font-bold text-primary">⭐ 我的收藏</view>
+        <view class="ml-2 text-xs text-muted px-2 py-1 rounded-full bg-white/5">{{favorites.length}}</view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{favorites.length === 0}}" class="empty-fav">
+      <view class="empty-fav-icon">📦</view>
+      <view class="empty-fav-title text-lg text-primary font-semibold mt-3">工具箱是空的</view>
+      <view class="empty-fav-desc text-sm text-secondary mt-2">发现更多好用的工具，添加收藏使用更方便</view>
+      <button class="btn-primary mt-6" bindtap="goExplore">去探索工具</button>
+    </view>
+
+    <!-- 收藏列表 -->
+    <view wx:else class="fav-list">
+      <block wx:for="{{favorites}}" wx:key="id">
+        <view class="fav-card">
+          <view class="flex-1" bindtap="goToTool" data-id="{{item.id}}">
+            <view class="flex items-center">
+              <view class="tool-icon icon-default" style="width: 88rpx; height: 88rpx; border-radius: 22rpx; font-size: 42rpx;">
+                <text>{{item.icon}}</text>
+              </view>
+              <view class="flex-1 ml-3">
+                <view class="flex items-center">
+                  <text class="text-base font-semibold text-primary">{{item.name}}</text>
+                  <view class="vip-badge" wx:if="{{item.isVip}}">VIP</view>
+                </view>
+                <view class="text-xs text-secondary mt-1">{{item.desc}}</view>
+                <view class="text-xs text-muted mt-1 flex items-center">
+                  <text>📂 {{item.category}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view class="fav-actions flex-shrink-0 ml-2">
+            <view class="action-btn remove-btn" catchtap="removeFavorite" data-id="{{item.id}}">
+              <text>移除</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 会员特权介绍 -->
+  <view class="features-section" wx:if="{{!isVip}}">
+    <view class="section-header flex items-center justify-between">
+      <view class="section-title text-lg font-bold text-primary">💎 会员特权</view>
+      <view class="text-xs text-warning" bindtap="openVipModal">开通会员 ›</view>
+    </view>
+    <view class="features-grid mt-3">
+      <block wx:for="{{vipFeatures}}" wx:key="title">
+        <view class="feature-card">
+          <view class="feature-icon">{{item.icon}}</view>
+          <view class="feature-title text-sm font-semibold text-primary mt-2">{{item.title}}</view>
+          <view class="feature-desc text-xs text-secondary mt-1">{{item.desc}}</view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view style="height: 120rpx;"></view>
+
+  <!-- VIP 弹窗 -->
+  <view wx:if="{{showVipModal}}" class="vip-modal-mask" catchtap="closeVipModal">
+    <view class="vip-modal" catchtap="">
+      <view class="modal-close" bindtap="closeVipModal">✕</view>
+
+      <view class="modal-header">
+        <view class="modal-emoji">👑</view>
+        <view class="modal-title text-2xl font-bold text-primary mt-3">升级 至尊会员</view>
+        <view class="modal-sub text-sm text-secondary mt-2">一次开通，全部工具畅享使用</view>
+      </view>
+
+      <view class="plan-list mt-4">
+        <block wx:for="{{vipPlans}}" wx:key="id">
+          <view class="plan-card {{item.highlight ? 'plan-highlight' : ''}}" bindtap="selectPlan" data-id="{{item.id}}">
+            <view wx:if="{{item.highlight}}" class="plan-tag">最推荐</view>
+            <view class="plan-name text-base font-semibold text-primary">{{item.name}}</view>
+            <view class="plan-price mt-2">
+              <text class="currency text-accent">¥</text>
+              <text class="amount text-3xl font-bold text-accent">{{item.price}}</text>
+              <text class="unit text-sm text-secondary">{{item.unit}}</text>
+            </view>
+            <view class="plan-original text-xs text-muted">原价 ¥{{item.original}}</view>
+          </view>
+        </block>
+      </view>
+
+      <view class="modal-footer mt-5">
+        <button class="btn-primary modal-btn" bindtap="selectPlan" data-id="year">
+          立即开通年度会员 · ¥98
+        </button>
+        <view class="restore-link text-xs text-muted mt-3" bindtap="restoreVip">
+          已有购买记录？点此恢复
+        </view>
+        <view class="tips text-xs text-muted mt-3">
+          开通即表示同意《会员服务协议》与《自动续费条款》
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

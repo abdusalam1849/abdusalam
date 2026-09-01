@@ -1,0 +1,605 @@
+/* 工具详情通用 */
+.detail-page {
+  padding-top: 0;
+}
+
+.tool-header {
+  padding: 28rpx 32rpx 20rpx;
+  background: linear-gradient(180deg, #1a1033 0%, #0f0f1a 100%);
+}
+
+.tool-top {
+  display: flex;
+  align-items: flex-start;
+}
+
+.tool-name {
+  letter-spacing: -0.5rpx;
+}
+
+.cat-tag {
+  background: rgba(124,58,237,0.15);
+  color: #a78bfa;
+  border: 1rpx solid rgba(124,58,237,0.3);
+  display: inline-block;
+}
+
+.fav-btn {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+  font-size: 40rpx;
+  color: #8a8a9a;
+  border: 1rpx solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.fav-active {
+  background: linear-gradient(135deg, rgba(251,191,36,0.2), rgba(245,158,11,0.15));
+  border-color: rgba(251,191,36,0.4);
+}
+
+.tool-body {
+  padding: 20rpx 32rpx;
+}
+
+/* VIP 阻挡 */
+.vip-block {
+  margin: 40rpx 32rpx;
+  padding: 80rpx 48rpx;
+  background: linear-gradient(180deg, rgba(45,31,78,0.8), rgba(20,20,37,0.8));
+  border-radius: 32rpx;
+  text-align: center;
+  border: 1rpx solid rgba(251,191,36,0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.vip-block-icon {
+  font-size: 140rpx;
+  filter: drop-shadow(0 10rpx 30rpx rgba(251,191,36,0.4));
+}
+
+.vip-block-desc {
+  white-space: pre-line;
+  padding: 0 40rpx;
+}
+
+/* ========= 计算器 ========= */
+.calc-screen {
+  padding: 48rpx 32rpx;
+  background: linear-gradient(145deg, #1a1a2e, #16162a);
+  border-radius: 28rpx;
+  margin-bottom: 24rpx;
+  border: 1rpx solid rgba(124,58,237,0.15);
+  min-height: 220rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-shadow: inset 0 -4rpx 20rpx rgba(0,0,0,0.3);
+}
+
+.calc-history {
+  min-height: 40rpx;
+  word-break: break-all;
+  opacity: 0.6;
+}
+
+.calc-display {
+  font-size: 88rpx;
+  font-weight: 300;
+  color: #ffffff;
+  letter-spacing: -2rpx;
+  word-break: break-all;
+  line-height: 1.1;
+  margin-top: 8rpx;
+}
+
+.calc-keypad {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.calc-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16rpx;
+}
+
+.calc-btn {
+  height: 120rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #2a2a45 0%, #1e1e33 100%);
+  border-radius: 24rpx;
+  font-size: 40rpx;
+  font-weight: 500;
+  color: #ffffff;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.25);
+  transition: all 0.1s;
+}
+
+.calc-btn:active {
+  transform: scale(0.94);
+}
+
+.calc-btn-op {
+  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  color: #ffffff;
+  font-size: 44rpx;
+  box-shadow: 0 6rpx 20rpx rgba(124,58,237,0.4);
+}
+
+.calc-btn-fn {
+  background: linear-gradient(145deg, #3a3a55 0%, #2a2a42 100%);
+  color: #a78bfa;
+}
+
+.calc-btn-eq {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: #ffffff;
+  font-size: 48rpx;
+  box-shadow: 0 6rpx 20rpx rgba(34,197,94,0.4);
+}
+
+.calc-btn-zero {
+  grid-column: span 1;
+}
+
+/* ========= 输入卡片 ========= */
+.input-card {
+  padding: 8rpx 28rpx;
+  background: linear-gradient(145deg, #1a1a2e 0%, #16162a 100%);
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(124,58,237,0.12);
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.2);
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 0;
+}
+
+.input-label {
+  width: 160rpx;
+  color: #a0a0b8;
+  flex-shrink: 0;
+}
+
+.input-field {
+  flex: 1;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #ffffff;
+  padding: 0 16rpx;
+}
+
+.input-unit {
+  flex-shrink: 0;
+  padding-left: 12rpx;
+}
+
+.divider-soft {
+  height: 1rpx;
+  padding: 0 !important;
+  background: rgba(255,255,255,0.05);
+}
+
+/* ========= 结果卡 ========= */
+.result-card {
+  padding: 32rpx;
+  background: linear-gradient(145deg, #1a1a2e 0%, #16162a 100%);
+  border-radius: 28rpx;
+  border: 1rpx solid rgba(124,58,237,0.15);
+  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.3);
+}
+
+/* BMI */
+.bmi-value {
+  display: flex;
+  align-items: center;
+}
+
+.bmi-num {
+  font-size: 80rpx;
+  letter-spacing: -2rpx;
+}
+
+.bmi-tag {
+  padding: 6rpx 20rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  border-radius: 9999rpx;
+}
+
+.bmi-tag-ok { background: rgba(34,197,94,0.15); color: #34d399; }
+.bmi-tag-warn { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.bmi-tag-bad { background: rgba(248,113,113,0.15); color: #f87171; }
+
+.bmi-num-ok { color: #34d399; }
+.bmi-num-warn { color: #fbbf24; }
+.bmi-num-bad { color: #f87171; }
+
+.bmi-scale {
+  padding: 0 8rpx 8rpx;
+}
+
+.scale-bar {
+  height: 16rpx;
+  border-radius: 9999rpx;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+.seg-under { flex: 25; background: #3b82f6; }
+.seg-normal { flex: 30; background: #22c55e; }
+.seg-over { flex: 20; background: #fbbf24; }
+.seg-obese { flex: 25; background: #ef4444; }
+
+.scale-pointer {
+  position: absolute;
+  top: -8rpx;
+  width: 4rpx;
+  height: 32rpx;
+  background: #ffffff;
+  border-radius: 4rpx;
+  box-shadow: 0 0 12rpx rgba(255,255,255,0.8);
+  transform: translateX(-50%);
+  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 12rpx;
+}
+
+/* 随机数 */
+.rand-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  padding: 8rpx 0;
+}
+
+.rand-chip {
+  padding: 20rpx 32rpx;
+  background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(91,33,182,0.15));
+  border: 1rpx solid rgba(124,58,237,0.4);
+  border-radius: 16rpx;
+  color: #a78bfa;
+  min-width: 100rpx;
+  text-align: center;
+  box-shadow: inset 0 -2rpx 10rpx rgba(0,0,0,0.2);
+}
+
+/* 单位换算 */
+.unit-cats {
+  white-space: nowrap;
+}
+
+.unit-cats-inner {
+  display: inline-flex;
+  gap: 12rpx;
+}
+
+.unit-cat {
+  padding: 14rpx 28rpx;
+  background: rgba(255,255,255,0.04);
+  border-radius: 9999rpx;
+  border: 1rpx solid rgba(255,255,255,0.06);
+  font-size: 26rpx;
+  color: #a0a0b8;
+  flex-shrink: 0;
+}
+
+.unit-cat-active {
+  background: linear-gradient(135deg, rgba(124,58,237,0.35), rgba(91,33,182,0.25));
+  color: #ffffff;
+  border-color: rgba(124,58,237,0.5);
+  font-weight: 600;
+}
+
+.convert-card {
+  padding: 20rpx;
+  background: linear-gradient(145deg, #1a1a2e 0%, #16162a 100%);
+  border-radius: 28rpx;
+  border: 1rpx solid rgba(124,58,237,0.12);
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.2);
+}
+
+.convert-row {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 20rpx;
+  background: rgba(255,255,255,0.03);
+  border-radius: 20rpx;
+}
+
+.picker-trigger {
+  width: 260rpx;
+  flex-shrink: 0;
+  padding-right: 16rpx;
+  border-right: 1rpx solid rgba(255,255,255,0.08);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.convert-input {
+  flex: 1;
+  padding-left: 24rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #ffffff;
+  min-height: 44rpx;
+  line-height: 44rpx;
+}
+
+.convert-swap {
+  margin: 4rpx 0;
+}
+
+.swap-icon {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(124,58,237,0.4);
+}
+
+.picker-value {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+/* 房贷 */
+.loan-tabs {
+  display: flex;
+  background: rgba(255,255,255,0.04);
+  border-radius: 9999rpx;
+  padding: 8rpx;
+}
+
+.loan-tab {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx;
+  font-size: 28rpx;
+  border-radius: 9999rpx;
+  color: #8a8a9a;
+  transition: all 0.2s;
+}
+
+.loan-tab-active {
+  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4rpx 16rpx rgba(124,58,237,0.4);
+}
+
+.loan-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+  margin-top: 12rpx;
+}
+
+.loan-stat {
+  padding: 20rpx;
+  background: rgba(255,255,255,0.02);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(255,255,255,0.05);
+}
+
+/* 年龄 */
+.age-main {
+  padding: 20rpx 0;
+}
+
+.age-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+
+.age-item {
+  padding: 20rpx;
+  background: rgba(255,255,255,0.03);
+  border-radius: 16rpx;
+  text-align: center;
+}
+
+.next-birthday {
+  padding: 8rpx 0;
+  font-size: 28rpx;
+}
+
+/* 小费 */
+.tip-row {
+  padding: 16rpx 0;
+}
+
+/* 二维码 */
+.qr-textarea {
+  width: 100%;
+  min-height: 160rpx;
+  padding: 20rpx;
+  background: rgba(255,255,255,0.03);
+  border-radius: 16rpx;
+  color: #ffffff;
+  line-height: 1.6;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(255,255,255,0.08);
+}
+
+.qr-placeholder {
+  padding: 40rpx 0;
+}
+
+.qr-demo {
+  width: 400rpx;
+  height: 400rpx;
+  padding: 30rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 30rpx rgba(255,255,255,0.08);
+}
+
+.qr-grid {
+  width: 340rpx;
+  height: 340rpx;
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  grid-template-rows: repeat(20, 1fr);
+  gap: 1rpx;
+}
+
+.qr-dot { width: 100%; height: 100%; border-radius: 2rpx; }
+.qr-on { background: #111111; }
+.qr-off { background: #ffffff; }
+
+/* 备忘录 */
+.note-input-wrap {
+  padding: 24rpx;
+  background: linear-gradient(145deg, #1a1a2e 0%, #16162a 100%);
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(124,58,237,0.12);
+}
+
+.note-input {
+  width: 100%;
+  min-height: 120rpx;
+  padding: 20rpx;
+  background: rgba(255,255,255,0.03);
+  border-radius: 16rpx;
+  color: #ffffff;
+  line-height: 1.6;
+  border: 1rpx solid rgba(255,255,255,0.06);
+  box-sizing: border-box;
+}
+
+.note-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.note-item {
+  padding: 28rpx;
+  background: linear-gradient(145deg, #1a1a2e 0%, #16162a 100%);
+  border-radius: 20rpx;
+  border-left: 6rpx solid #7c3aed;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.2);
+}
+
+/* 倒计时 */
+.countdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.cd-card {
+  display: flex;
+  align-items: center;
+  padding: 28rpx;
+  background: linear-gradient(145deg, #1a1a2e 0%, #16162a 100%);
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(124,58,237,0.1);
+}
+
+.cd-emoji {
+  font-size: 52rpx;
+  width: 88rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  border-radius: 22rpx;
+}
+
+.cd-days {
+  font-size: 44rpx;
+  letter-spacing: -1rpx;
+}
+
+/* 手电筒 */
+.flash-btn {
+  width: 280rpx;
+  height: 280rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #2a2a45 0%, #16162a 100%);
+  border: 8rpx solid rgba(255,255,255,0.05);
+  box-shadow: 0 12rpx 40rpx rgba(0,0,0,0.4), inset 0 0 40rpx rgba(0,0,0,0.3);
+  transition: all 0.3s;
+}
+
+.flash-btn:active {
+  transform: scale(0.96);
+}
+
+.flash-on {
+  background: radial-gradient(circle, #ffffff 0%, #fff5c2 40%, #fde047 80%);
+  border-color: #fde047;
+  box-shadow: 0 0 80rpx rgba(253,224,71,0.6), 0 0 200rpx rgba(253,224,71,0.3);
+}
+
+.flash-icon {
+  font-size: 120rpx;
+}
+
+.power-bar {
+  width: 400rpx;
+  height: 12rpx;
+  background: rgba(255,255,255,0.06);
+  border-radius: 9999rpx;
+  overflow: hidden;
+}
+
+.power-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fbbf24, #fde047);
+  border-radius: 9999rpx;
+  transition: width 0.3s;
+}
+
+/* 默认占位 */
+.default-placeholder {
+  padding: 60rpx 32rpx;
+}
+
+.tip-card {
+  padding: 28rpx;
+  background: linear-gradient(135deg, rgba(6,182,212,0.1) 0%, rgba(124,58,237,0.08) 100%);
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(6,182,212,0.2);
+}
+
+.feature-pill {
+  background: rgba(34,197,94,0.1);
+  color: #34d399;
+  border: 1rpx solid rgba(34,197,94,0.25);
+}

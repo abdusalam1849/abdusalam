@@ -1,0 +1,168 @@
+<view class="container">
+  <!-- 顶部搜索栏 -->
+  <view class="header">
+    <view class="header-top">
+      <view class="brand">
+        <text class="brand-icon">✨</text>
+        <view class="brand-text">
+          <view class="brand-title">Abdusalam</view>
+          <view class="brand-subtitle text-sm text-secondary">你的全能工具箱</view>
+        </view>
+      </view>
+      <view class="stats-pill text-xs text-secondary">
+        <text class="text-accent font-bold">{{stats.toolCount}}</text>+ 工具
+      </view>
+    </view>
+
+    <view class="search-bar" bindtap="onSearchConfirm">
+      <text class="search-icon">🔍</text>
+      <input
+        class="search-input text-secondary"
+        placeholder="搜索工具，如：计算器、二维码..."
+        placeholder-style="color:#6b6b80"
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+        bindconfirm="onSearchConfirm"
+        confirm-type="search"
+      />
+    </view>
+  </view>
+
+  <!-- Banner 轮播 -->
+  <swiper class="banner-swiper" indicator-dots="{{true}}" indicator-color="rgba(255,255,255,0.2)" indicator-active-color="#a78bfa" autoplay="{{true}}" circular="{{true}}" interval="3500" duration="500">
+    <block wx:for="{{banners}}" wx:key="id">
+      <swiper-item>
+        <view class="banner-card" style="background: {{item.color}};">
+          <view class="banner-content">
+            <view class="banner-tag text-xs font-bold">限时</view>
+            <view class="banner-title text-2xl font-bold mt-2">{{item.title}}</view>
+            <view class="banner-desc text-sm mt-2 opacity-90">{{item.desc}}</view>
+          </view>
+          <view class="banner-emoji">🎁</view>
+        </view>
+      </swiper-item>
+    </block>
+  </swiper>
+
+  <!-- 快捷入口 8宫格 -->
+  <view class="section mt-4">
+    <view class="section-header flex items-center justify-between">
+      <view class="flex items-center">
+        <view class="section-title text-lg font-bold text-primary">快捷工具</view>
+      </view>
+      <view class="text-sm text-secondary" bindtap="goToCategory" data-id="all">全部 ›</view>
+    </view>
+    <view class="quick-grid mt-3">
+      <block wx:for="{{quickTools}}" wx:key="id">
+        <view class="quick-item" bindtap="goToTool" data-id="{{item.id}}">
+          <view class="tool-icon {{item.iconClass}}">
+            <text>{{item.icon}}</text>
+          </view>
+          <view class="quick-name text-sm text-primary mt-2">{{item.name}}</view>
+          <view class="vip-badge" wx:if="{{item.isVip}}">VIP</view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 统计卡片 -->
+  <view class="section mt-4">
+    <view class="stats-card">
+      <view class="stats-item">
+        <view class="stats-num text-2xl font-bold text-accent">{{stats.toolCount}}+</view>
+        <view class="stats-label text-xs text-secondary mt-1">实用工具</view>
+      </view>
+      <view class="stats-divider"></view>
+      <view class="stats-item">
+        <view class="stats-num text-2xl font-bold text-success">{{stats.categoryCount}}</view>
+        <view class="stats-label text-xs text-secondary mt-1">工具分类</view>
+      </view>
+      <view class="stats-divider"></view>
+      <view class="stats-item">
+        <view class="stats-num text-2xl font-bold text-warning">{{stats.userCount}}</view>
+        <view class="stats-label text-xs text-secondary mt-1">累计用户</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最近使用 -->
+  <view class="section mt-4" wx:if="{{historyTools.length > 0}}">
+    <view class="section-header flex items-center justify-between">
+      <view class="flex items-center">
+        <view class="section-title text-lg font-bold text-primary">最近使用</view>
+        <view class="ml-2 text-xs text-muted px-2 py-1 rounded-full bg-white/5">{{historyTools.length}}</view>
+      </view>
+      <view class="text-sm text-secondary" bindtap="viewAllHistory">全部历史 ›</view>
+    </view>
+    <scroll-view scroll-x="{{true}}" class="history-scroll mt-3" enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view class="history-list flex">
+        <block wx:for="{{historyTools}}" wx:key="id">
+          <view class="history-item flex-shrink-0" bindtap="goToTool" data-id="{{item.id}}">
+            <view class="tool-icon icon-default" style="width: 80rpx; height: 80rpx; border-radius: 20rpx; font-size: 36rpx;">
+              <text>{{item.icon}}</text>
+            </view>
+            <view class="history-name text-xs text-primary mt-2">{{item.name}}</view>
+          </view>
+        </block>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 我的收藏 -->
+  <view class="section mt-4" wx:if="{{favorites.length > 0}}">
+    <view class="section-header flex items-center justify-between">
+      <view class="flex items-center">
+        <view class="section-title text-lg font-bold text-primary">⭐ 我的收藏</view>
+        <view class="ml-2 text-xs text-muted px-2 py-1 rounded-full bg-white/5">{{favorites.length}}</view>
+      </view>
+      <view class="text-sm text-secondary" bindtap="viewAllFavorites">管理 ›</view>
+    </view>
+    <view class="fav-grid mt-3">
+      <block wx:for="{{favorites}}" wx:key="id">
+        <view class="fav-item card" bindtap="goToTool" data-id="{{item.id}}">
+          <view class="flex items-center">
+            <view class="tool-icon icon-default" style="width: 72rpx; height: 72rpx; border-radius: 18rpx; font-size: 36rpx;">
+              <text>{{item.icon}}</text>
+            </view>
+            <view class="flex-1 ml-3">
+              <view class="text-base font-semibold text-primary">{{item.name}}</view>
+              <view class="text-xs text-secondary mt-1">{{item.desc}}</view>
+            </view>
+            <view class="vip-badge" wx:if="{{item.isVip}}">VIP</view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 热门推荐 -->
+  <view class="section mt-4">
+    <view class="section-header flex items-center justify-between">
+      <view class="flex items-center">
+        <view class="section-title text-lg font-bold text-primary">🔥 热门推荐</view>
+      </view>
+    </view>
+    <view class="hot-list mt-3">
+      <block wx:for="{{hotTools}}" wx:key="id">
+        <view class="hot-item card flex items-center" bindtap="goToTool" data-id="{{item.id}}">
+          <view class="hot-rank {{index < 3 ? 'rank-top' : ''}} text-lg font-bold mr-3">{{index + 1}}</view>
+          <view class="tool-icon {{item.iconClass}}" style="width: 80rpx; height: 80rpx; border-radius: 20rpx; font-size: 36rpx;">
+            <text>{{item.icon}}</text>
+          </view>
+          <view class="flex-1 ml-3">
+            <view class="flex items-center">
+              <text class="text-base font-semibold text-primary">{{item.name}}</text>
+              <view class="vip-badge" wx:if="{{item.isVip}}">VIP</view>
+            </view>
+            <view class="text-xs text-secondary mt-1">{{item.desc}}</view>
+            <view class="text-xs text-muted mt-1">👥 {{item.users}} 人在使用</view>
+          </view>
+          <view class="arrow-btn">›</view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 底部留白 -->
+  <view style="height: 120rpx;"></view>
+</view>

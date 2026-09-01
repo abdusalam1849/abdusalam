@@ -1,0 +1,100 @@
+<view class="container cat-page">
+  <!-- 搜索栏 -->
+  <view class="search-wrap">
+    <view class="search-bar">
+      <text class="search-icon">🔍</text>
+      <input
+        class="search-input text-secondary"
+        placeholder="搜索工具名称或描述..."
+        placeholder-style="color:#6b6b80"
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+        focus="{{false}}"
+      />
+      <view wx:if="{{searchKeyword}}" class="clear-btn text-muted" bindtap="clearSearch">✕</view>
+    </view>
+  </view>
+
+  <!-- 搜索结果 -->
+  <view wx:if="{{isSearching}}" class="search-result">
+    <view class="result-header p-3 text-sm text-secondary">
+      找到 <text class="text-accent font-bold">{{searchResults.length}}</text> 个工具
+    </view>
+    <view wx:if="{{searchResults.length === 0}}" class="empty-state">
+      <view class="empty-icon">🔍</view>
+      <view class="empty-text">没有找到相关工具，换个关键词试试吧</view>
+    </view>
+    <view class="tool-list" wx:else>
+      <block wx:for="{{searchResults}}" wx:key="id">
+        <view class="tool-card" bindtap="goToTool" data-id="{{item.id}}">
+          <view class="tool-icon {{item.iconClass}}">
+            <text>{{item.icon}}</text>
+          </view>
+          <view class="flex-1 ml-3">
+            <view class="flex items-center">
+              <text class="text-base font-semibold text-primary">{{item.name}}</text>
+              <view class="vip-badge" wx:if="{{item.isVip}}">VIP</view>
+            </view>
+            <view class="text-xs text-secondary mt-1">{{item.desc}}</view>
+            <view class="text-xs text-muted mt-1">{{item.users}} 使用</view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 正常分类浏览 -->
+  <block wx:else>
+    <!-- 分类标签横滑 -->
+    <scroll-view class="cat-tabs" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view class="cat-tabs-inner">
+        <block wx:for="{{categories}}" wx:key="id">
+          <view
+            class="cat-tab {{activeCategory === item.id ? 'cat-tab-active' : ''}}"
+            bindtap="switchCategory"
+            data-id="{{item.id}}"
+          >
+            <text class="cat-tab-icon">{{item.icon}}</text>
+            <text class="cat-tab-name">{{item.name}}</text>
+          </view>
+        </block>
+      </view>
+    </scroll-view>
+
+    <!-- 分类信息卡片（非全部时显示） -->
+    <view wx:if="{{activeCategory !== 'all'}}" class="cat-info-wrap">
+      <view class="cat-info-card" wx:for="{{categories}}" wx:key="id" wx:if="{{item.id === activeCategory}}" style="background: {{item.color}};">
+        <view class="cat-info-icon">{{item.icon}}</view>
+        <view class="cat-info-content">
+          <view class="cat-info-name text-xl font-bold">{{item.name}}</view>
+          <view class="cat-info-desc text-sm mt-1 opacity-90">{{item.desc}}</view>
+          <view class="cat-info-count text-xs mt-2 opacity-80">共 {{tools.length}} 个工具</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 工具网格列表 -->
+    <view class="tool-grid-wrap">
+      <view class="list-header flex items-center justify-between p-3">
+        <view class="text-base font-semibold text-primary">
+          {{activeCategory === 'all' ? '全部工具' : '工具列表'}}
+        </view>
+        <view class="text-xs text-muted">共 {{tools.length}} 项</view>
+      </view>
+      <view class="tool-grid">
+        <block wx:for="{{tools}}" wx:key="id">
+          <view class="grid-tool-card" bindtap="goToTool" data-id="{{item.id}}">
+            <view class="tool-icon {{item.iconClass}}">
+              <text>{{item.icon}}</text>
+            </view>
+            <view class="grid-tool-name text-sm text-primary mt-2">{{item.name}}</view>
+            <view class="grid-tool-desc text-xs text-muted mt-1">{{item.users}}</view>
+            <view class="vip-tag" wx:if="{{item.isVip}}">VIP</view>
+          </view>
+        </block>
+      </view>
+    </view>
+  </block>
+
+  <view style="height: 120rpx;"></view>
+</view>

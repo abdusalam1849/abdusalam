@@ -1,0 +1,429 @@
+<view class="container detail-page" wx:if="{{tool}}">
+  <!-- 工具头部 -->
+  <view class="tool-header">
+    <view class="tool-top">
+      <view class="tool-icon {{tool.iconClass}}" style="width: 120rpx; height: 120rpx; border-radius: 32rpx; font-size: 60rpx;">
+        <text>{{tool.icon}}</text>
+      </view>
+      <view class="flex-1 ml-4">
+        <view class="flex items-center">
+          <text class="tool-name text-2xl font-bold text-primary">{{tool.name}}</text>
+          <view class="vip-badge" wx:if="{{tool.isVip}}">VIP</view>
+        </view>
+        <view class="tool-desc text-sm text-secondary mt-2">{{tool.desc}}</view>
+        <view class="flex items-center mt-2">
+          <view class="cat-tag text-xs px-2 py-1 rounded-full">{{category.name}} · {{category.icon}}</view>
+          <view class="text-xs text-muted ml-2">👥 {{tool.users}}</view>
+        </view>
+      </view>
+      <view class="fav-btn {{isFav ? 'fav-active' : ''}}" bindtap="toggleFav">
+        <text>{{isFav ? '⭐' : '☆'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- VIP 阻挡 -->
+  <view wx:if="{{showVipBlock}}" class="vip-block">
+    <view class="vip-block-icon">👑</view>
+    <view class="vip-block-title text-xl font-bold mt-3">会员专属功能</view>
+    <view class="vip-block-desc text-sm text-secondary mt-2 text-center leading-relaxed">
+      {{tool.name}} 仅会员可使用。开通会员立即解锁10+高级工具及更多特权
+    </view>
+    <button class="btn-primary mt-6" bindtap="goVip">去开通会员</button>
+    <view class="text-xs text-muted mt-4">已有会员？重新进入页面即可使用</view>
+  </view>
+
+  <!-- 工具工作区 -->
+  <block wx:if="{{!showVipBlock}}">
+
+    <!-- 计算器 -->
+    <view wx:if="{{tool.id === 'calculator'}}" class="tool-body">
+      <view class="calc-screen">
+        <view class="calc-history text-sm text-secondary text-right">{{calcHistory}}</view>
+        <view class="calc-display text-right">{{calcDisplay}}</view>
+      </view>
+      <view class="calc-keypad">
+        <block wx:for="{{calcBtns}}" wx:key="index" wx:for-item="row">
+          <view class="calc-row">
+            <block wx:for="{{row}}" wx:key="*this" wx:for-item="v">
+              <view class="calc-btn
+                {{v === '=' ? 'calc-btn-eq' : ''}}
+                {{v === '÷' || v === '×' || v === '-' || v === '+' ? 'calc-btn-op' : ''}}
+                {{v === 'C' || v === '±' || v === '%' ? 'calc-btn-fn' : ''}}"
+                bindtap="pressCalc" data-v="{{v}}">
+                <text>{{v}}</text>
+              </view>
+            </block>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- BMI -->
+    <view wx:elif="{{tool.id === 'bmi'}}" class="tool-body">
+      <view class="input-card">
+        <view class="input-row">
+          <view class="input-label text-sm">身高</view>
+          <input type="digit" class="input-field text-right" placeholder="0" value="{{bmiHeight}}" bindinput="bmiInput" data-type="bmiHeight"/>
+          <view class="input-unit text-secondary">cm</view>
+        </view>
+        <view class="input-row divider-soft"></view>
+        <view class="input-row">
+          <view class="input-label text-sm">体重</view>
+          <input type="digit" class="input-field text-right" placeholder="0" value="{{bmiWeight}}" bindinput="bmiInput" data-type="bmiWeight"/>
+          <view class="input-unit text-secondary">kg</view>
+        </view>
+      </view>
+      <button class="btn-primary mt-4" bindtap="calcBmi">计算 BMI</button>
+      <view wx:if="{{bmiResult}}" class="result-card mt-4">
+        <view>
+          <view class="text-sm text-secondary">你的 BMI 指数</view>
+          <view class="bmi-value mt-1 flex items-center">
+            <text class="bmi-num bmi-num-{{bmiResult.tagCls}} font-bold">{{bmiResult.value}}</text>
+            <view class="bmi-tag bmi-tag-{{bmiResult.tagCls}} ml-3">{{bmiResult.tag}}</view>
+          </view>
+        </view>
+        <view class="divider my-3"></view>
+        <view class="text-sm text-primary">💡 {{bmiResult.tip}}</view>
+        <view class="text-xs text-secondary mt-2">✅ {{bmiResult.advise}}</view>
+        <view class="bmi-scale mt-4">
+          <view class="scale-bar">
+            <view class="scale-seg seg-under"></view>
+            <view class="scale-seg seg-normal"></view>
+            <view class="scale-seg seg-over"></view>
+            <view class="scale-seg seg-obese"></view>
+            <view class="scale-pointer" style="left: {{bmiResult.pct}}%;"></view>
+          </view>
+          <view class="scale-labels text-xs text-muted mt-1 flex justify-between">
+            <text>18.5</text><text>24</text><text>28</text><text>38</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 随机数 -->
+    <view wx:elif="{{tool.id === 'random'}}" class="tool-body">
+      <view class="input-card">
+        <view class="input-row">
+          <view class="input-label text-sm">最小值</view>
+          <input type="number" class="input-field text-right" placeholder="1" value="{{randMin}}" bindinput="randInput" data-type="randMin"/>
+        </view>
+        <view class="input-row divider-soft"></view>
+        <view class="input-row">
+          <view class="input-label text-sm">最大值</view>
+          <input type="number" class="input-field text-right" placeholder="100" value="{{randMax}}" bindinput="randInput" data-type="randMax"/>
+        </view>
+        <view class="input-row divider-soft"></view>
+        <view class="input-row">
+          <view class="input-label text-sm">生成数量</view>
+          <input type="number" class="input-field text-right" placeholder="1" value="{{randCount}}" bindinput="randInput" data-type="randCount"/>
+        </view>
+        <view class="input-row divider-soft"></view>
+        <view class="input-row">
+          <view class="input-label text-sm flex-1">允许重复</view>
+          <switch checked="{{randAllowRepeat}}" color="#7c3aed" bindchange="toggleRepeat" />
+        </view>
+      </view>
+      <button class="btn-primary mt-4" bindtap="genRandom">🎲 生成随机数</button>
+      <view wx:if="{{randResult.length > 0}}" class="result-card mt-4">
+        <view class="text-sm text-secondary mb-2">生成结果（{{randResult.length}} 个）</view>
+        <view class="rand-results">
+          <block wx:for="{{randResult}}" wx:key="index">
+            <view class="rand-chip text-lg font-semibold">{{item}}</view>
+          </block>
+        </view>
+      </view>
+    </view>
+
+    <!-- 单位换算 -->
+    <view wx:elif="{{tool.id === 'unit-convert'}}" class="tool-body">
+      <scroll-view class="unit-cats" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+        <view class="unit-cats-inner">
+          <block wx:for="{{unitCategories}}" wx:key="id">
+            <view class="unit-cat {{unitCategory === item.id ? 'unit-cat-active' : ''}}" bindtap="switchUnitCat" data-id="{{item.id}}">
+              {{item.name}}
+            </view>
+          </block>
+        </view>
+      </scroll-view>
+      <view class="convert-card mt-3">
+        <view class="convert-row">
+          <picker mode="selector" range="{{unitCurCatUnits}}" range-key="name" value="{{unitFromIndex}}" bindchange="pickUnitFrom">
+            <view class="picker-trigger">
+              <text class="text-sm font-semibold text-primary">{{unitFromName}}</text>
+              <text class="text-secondary ml-1">▼</text>
+            </view>
+          </picker>
+          <input type="digit" class="convert-input text-right" placeholder="输入数值" value="{{unitValue}}" bindinput="unitValueInput"/>
+        </view>
+        <view class="convert-swap flex items-center justify-center py-2">
+          <view class="swap-icon" bindtap="swapUnits">⇅</view>
+        </view>
+        <view class="convert-row">
+          <picker mode="selector" range="{{unitCurCatUnits}}" range-key="name" value="{{unitToIndex}}" bindchange="pickUnitTo">
+            <view class="picker-trigger">
+              <text class="text-sm font-semibold text-primary">{{unitToName}}</text>
+              <text class="text-secondary ml-1">▼</text>
+            </view>
+          </picker>
+          <view class="convert-input text-right {{unitResult ? 'text-accent font-bold' : 'text-muted'}}">
+            {{unitResult || '结果'}}
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 房贷 -->
+    <view wx:elif="{{tool.id === 'loan'}}" class="tool-body">
+      <view class="loan-tabs">
+        <view class="loan-tab {{loanType === 'equal_payment' ? 'loan-tab-active' : ''}}" bindtap="setLoanType" data-type="equal_payment">等额本息</view>
+        <view class="loan-tab {{loanType === 'equal_principal' ? 'loan-tab-active' : ''}}" bindtap="setLoanType" data-type="equal_principal">等额本金</view>
+      </view>
+      <view class="input-card mt-3">
+        <view class="input-row">
+          <view class="input-label text-sm">贷款金额</view>
+          <input type="digit" class="input-field text-right" placeholder="100" value="{{loanAmount}}" bindinput="loanInput" data-type="loanAmount"/>
+          <view class="input-unit text-secondary">万元</view>
+        </view>
+        <view class="input-row divider-soft"></view>
+        <view class="input-row">
+          <view class="input-label text-sm">贷款年限</view>
+          <picker range="{{yearOptions}}" value="{{loanYearIndex}}" bindchange="pickYear">
+            <view class="picker-value text-right text-accent font-semibold">{{loanYears}} 年 ▾</view>
+          </picker>
+        </view>
+        <view class="input-row divider-soft"></view>
+        <view class="input-row">
+          <view class="input-label text-sm">年利率</view>
+          <input type="digit" class="input-field text-right" placeholder="3.10" value="{{loanRate}}" bindinput="loanInput" data-type="loanRate"/>
+          <view class="input-unit text-secondary">%</view>
+        </view>
+      </view>
+      <button class="btn-primary mt-4" bindtap="calcLoan">开始计算</button>
+      <view wx:if="{{loanResult}}" class="result-card mt-4">
+        <view class="text-xs text-accent font-semibold mb-1">还款方式：{{loanResult.type}}</view>
+        <view class="loan-stats">
+          <block wx:if="{{loanResult.mode === 1}}">
+            <view class="loan-stat"><view class="text-xs text-secondary">月供（每月相同）</view><view class="text-xl font-bold text-primary mt-1">¥{{loanResult.monthly}}</view></view>
+          </block>
+          <block wx:else>
+            <view class="loan-stat"><view class="text-xs text-secondary">首月还款</view><view class="text-xl font-bold text-primary mt-1">¥{{loanResult.fm}}</view></view>
+            <view class="loan-stat"><view class="text-xs text-secondary">末月还款</view><view class="text-xl font-bold text-primary mt-1">¥{{loanResult.lm}}</view></view>
+          </block>
+          <view class="loan-stat"><view class="text-xs text-secondary">还款总额</view><view class="text-lg font-bold text-accent mt-1">{{loanResult.total}}万</view></view>
+          <view class="loan-stat"><view class="text-xs text-secondary">贷款本金</view><view class="text-lg text-primary mt-1">{{loanResult.principal}}万</view></view>
+          <view class="loan-stat"><view class="text-xs text-secondary">支付利息</view><view class="text-lg font-bold text-danger mt-1">{{loanResult.interest}}万</view></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 年龄 -->
+    <view wx:elif="{{tool.id === 'age'}}" class="tool-body">
+      <view class="input-card">
+        <view class="input-row">
+          <view class="input-label text-sm flex-1">出生日期</view>
+          <picker mode="date" value="{{ageBirthday}}" bindchange="pickBirthday">
+            <view class="picker-value text-accent font-semibold">
+              {{ageBirthday || '请选择日期'}} ▾
+            </view>
+          </picker>
+        </view>
+      </view>
+      <view wx:if="{{ageResult}}" class="result-card mt-4">
+        <view class="age-main text-center">
+          <view class="text-5xl font-bold text-accent">{{ageResult.yrs}}<text class="text-xl ml-1 text-secondary">岁</text></view>
+          <view class="text-sm text-secondary mt-1">{{ageResult.mos}}个月 {{ageResult.dys}}天</view>
+        </view>
+        <view class="divider my-4"></view>
+        <view class="age-grid">
+          <view class="age-item"><view class="text-xs text-secondary">已经历</view><view class="text-lg font-bold text-primary mt-1">{{ageResult.weeks}}<text class="text-xs ml-1">周</text></view></view>
+          <view class="age-item"><view class="text-xs text-secondary">已经历</view><view class="text-lg font-bold text-primary mt-1">{{ageResult.totalDays}}<text class="text-xs ml-1">天</text></view></view>
+          <view class="age-item"><view class="text-xs text-secondary">生肖</view><view class="text-lg font-bold text-warning mt-1">{{ageResult.zodiac}}</view></view>
+          <view class="age-item"><view class="text-xs text-secondary">星座</view><view class="text-lg font-bold text-success mt-1">{{ageResult.star}}座</view></view>
+        </view>
+        <view class="divider my-4"></view>
+        <view class="next-birthday text-center">
+          <text class="text-secondary">🎂 距离下次生日还有 </text>
+          <text class="text-accent font-bold">{{ageResult.toNext}}</text>
+          <text class="text-secondary"> 天</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 小费 -->
+    <view wx:elif="{{tool.id === 'tip'}}" class="tool-body">
+      <view class="input-card">
+        <view class="input-row">
+          <view class="input-label text-sm">账单金额</view>
+          <input type="digit" class="input-field text-right" placeholder="0.00" value="{{tipAmount}}" bindinput="tipInput" data-type="tipAmount" bindblur="calcTip"/>
+          <view class="input-unit text-secondary">¥</view>
+        </view>
+        <view class="input-row divider-soft"></view>
+        <view class="input-row">
+          <view class="input-label text-sm">小费比例</view>
+          <slider min="0" max="30" step="1" value="{{tipPercent}}" activeColor="#7c3aed" backgroundColor="rgba(124,58,237,0.2)" block-size="24" bindchange="setTipPercent" style="flex:1; margin: 0 16rpx;"/>
+          <view class="input-unit text-accent font-semibold">{{tipPercent}}%</view>
+        </view>
+        <view class="input-row divider-soft"></view>
+        <view class="input-row">
+          <view class="input-label text-sm">AA 人数</view>
+          <input type="number" class="input-field text-right" placeholder="2" value="{{tipPeople}}" bindinput="tipInput" data-type="tipPeople" bindblur="calcTip"/>
+          <view class="input-unit text-secondary">人</view>
+        </view>
+      </view>
+      <view wx:if="{{tipResult}}" class="result-card mt-4">
+        <view class="tip-list">
+          <view class="tip-row flex justify-between items-center"><text class="text-secondary">小费金额</text><text class="text-warning font-semibold">¥{{tipResult.tip}}</text></view>
+          <view class="tip-row flex justify-between items-center"><text class="text-secondary">总金额</text><text class="text-primary text-lg font-bold">¥{{tipResult.total}}</text></view>
+          <view class="tip-row flex justify-between items-center"><text class="text-secondary">人均小费</text><text class="text-secondary">¥{{tipResult.eachTip}}</text></view>
+          <view class="tip-row divider-soft my-2"></view>
+          <view class="tip-row flex justify-between items-center">
+            <text class="text-sm font-semibold text-primary">人均应付</text>
+            <text class="text-accent text-2xl font-bold">¥{{tipResult.each}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 二维码 -->
+    <view wx:elif="{{tool.id === 'qr-code'}}" class="tool-body">
+      <view class="input-card">
+        <view class="input-label text-sm mb-2">输入要生成二维码的文本或链接</view>
+        <textarea class="qr-textarea text-sm" placeholder="例如：https://weixin.qq.com 或 你好世界" value="{{qrText}}" bindinput="qrInput" maxlength="500" auto-height="{{true}}"/>
+        <view class="flex justify-between items-center mt-3">
+          <button class="btn-secondary" bindtap="copyQr" size="mini">📋 复制文字</button>
+          <view class="text-xs text-muted">{{qrText.length}}/500</view>
+        </view>
+      </view>
+      <view class="result-card mt-4 text-center">
+        <view class="qr-placeholder flex flex-col items-center justify-center">
+          <view wx:if="{{qrText}}" class="qr-demo">
+            <view class="qr-grid">
+              <block wx:for="{{[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]}}" wx:key="*this" wx:for-item="ri">
+                <block wx:for="{{[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]}}" wx:key="*this" wx:for-item="ci">
+                  <view class="qr-dot qr-off" wx:if="{{(ri + ci + ri*ci) % 7 >= 4}}"></view>
+                  <view class="qr-dot qr-on" wx:else></view>
+                </block>
+              </block>
+            </view>
+          </view>
+          <view wx:else class="text-secondary text-sm">输入内容后在此预览二维码图案</view>
+          <view class="text-xs text-muted mt-3 opacity-70">* 示例图案 · 生产版本可接入 qrcode 库生成真实码</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 备忘录 -->
+    <view wx:elif="{{tool.id === 'notes'}}" class="tool-body">
+      <view class="note-input-wrap">
+        <textarea class="note-input text-sm" placeholder="记录想法、灵感、待办..." value="{{noteInput}}" bindinput="noteInput" maxlength="200" auto-height="{{true}}"/>
+        <view class="flex justify-end mt-3">
+          <button class="btn-primary" bindtap="addNote" size="mini">添加备忘 ✍️</button>
+        </view>
+      </view>
+      <view class="text-sm text-secondary mt-4 mb-2">已记录 {{notes.length}} 条</view>
+      <view wx:if="{{notes.length === 0}}" class="empty-state">
+        <view class="empty-icon">📝</view>
+        <view class="empty-text">还没有备忘，写下第一条吧</view>
+      </view>
+      <view wx:else class="note-list">
+        <block wx:for="{{notes}}" wx:key="id">
+          <view class="note-item">
+            <view class="note-content text-sm text-primary leading-relaxed">{{item.content}}</view>
+            <view class="flex justify-between items-center mt-3">
+              <view class="text-xs text-muted">📌 {{item.timeStr}}</view>
+              <view class="flex items-center">
+                <view class="text-xs text-accent px-3 py-1 rounded-full bg-white/5" catchtap="copyNote" data-c="{{item.content}}">复制</view>
+                <view class="text-xs text-danger px-3 py-1 rounded-full bg-white/5 ml-3" catchtap="deleteNote" data-id="{{item.id}}">删除</view>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 倒计时 -->
+    <view wx:elif="{{tool.id === 'countdown'}}" class="tool-body">
+      <view class="countdown-list">
+        <block wx:for="{{countdownDays}}" wx:key="id">
+          <view class="cd-card">
+            <view class="cd-emoji">{{item.icon}}</view>
+            <view class="flex-1 ml-3">
+              <view class="text-base font-semibold text-primary">{{item.name}}</view>
+              <view class="text-xs text-secondary mt-1">📅 {{item.date}}</view>
+            </view>
+            <view class="cd-right text-right">
+              <view class="cd-days {{item.isToday ? 'text-warning' : item.isPast ? 'text-muted' : 'text-accent'}} font-bold">
+                {{item.daysLeft}}<text class="text-xs ml-1 font-normal">天</text>
+              </view>
+              <view class="text-xs text-secondary mt-1">{{item.status}}</view>
+            </view>
+          </view>
+        </block>
+      </view>
+      <view class="text-xs text-muted mt-4 text-center opacity-70">* 内置6个常见节日 · 生产版本可支持自定义新增与编辑</view>
+    </view>
+
+    <!-- 手电筒 -->
+    <view wx:elif="{{tool.id === 'flashlight'}}" class="tool-body">
+      <view class="flashlight-wrap flex flex-col items-center justify-center" style="padding: 120rpx 0;">
+        <view class="flash-btn {{flashlightOn ? 'flash-on' : ''}}" bindtap="toggleFlash">
+          <text class="flash-icon">{{flashlightOn ? '💡' : '🔦'}}</text>
+        </view>
+        <view class="text-lg mt-6 text-primary font-semibold">{{flashlightOn ? '屏幕亮光已开启' : '点击按钮开启亮光'}}</view>
+        <view class="text-xs text-secondary mt-2 text-center leading-relaxed">
+          利用屏幕白色实现的手电筒功能{'\n'}可将手机屏幕朝上当作小夜灯使用
+        </view>
+        <view class="flash-power mt-6 text-xs text-center">
+          <text class="text-muted">亮度进度</text>
+          <view class="power-bar mt-2"><view class="power-fill" style="width: {{flashlightOn ? '100%' : '0%'}};"></view></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 时间戳 -->
+    <view wx:elif="{{tool.id === 'timestamp'}}" class="tool-body">
+      <view class="result-card">
+        <view class="text-xs text-secondary">当前 Unix 时间戳（秒）</view>
+        <view class="text-2xl font-bold text-accent mt-2 selectable">{{tsNow}}</view>
+        <view class="divider my-4"></view>
+        <view class="text-xs text-secondary">当前 Unix 时间戳（毫秒）</view>
+        <view class="text-xl font-bold text-primary mt-2 selectable">{{tsNowMs}}</view>
+        <view class="divider my-4"></view>
+        <view class="text-xs text-secondary">当前日期时间</view>
+        <view class="text-lg font-semibold text-primary mt-2">{{tsFull}}</view>
+        <view class="text-xs text-muted mt-3 opacity-70">* 每秒自动刷新</view>
+      </view>
+    </view>
+
+    <!-- 默认占位 -->
+    <view wx:else class="tool-body">
+      <view class="default-placeholder result-card text-center">
+        <view class="text-6xl mb-4">{{tool.icon}}</view>
+        <view class="text-lg font-bold text-primary">{{tool.name}}</view>
+        <view class="text-sm text-secondary mt-2">{{tool.desc}}</view>
+        <view class="divider my-5"></view>
+        <view class="text-xs text-muted leading-relaxed">
+          🚧 该工具详细功能模块正在持续开发中{'\n'}当前页面框架已就绪，可按需接入具体业务能力
+        </view>
+        <view class="mt-5 flex justify-center flex-wrap" style="gap: 12rpx;">
+          <view class="feature-pill text-xs px-3 py-1 rounded-full">✅ 页面框架</view>
+          <view class="feature-pill text-xs px-3 py-1 rounded-full">✅ 路由跳转</view>
+          <view class="feature-pill text-xs px-3 py-1 rounded-full">✅ 收藏分享</view>
+          <view class="feature-pill text-xs px-3 py-1 rounded-full">✅ 历史记录</view>
+        </view>
+      </view>
+      <view class="tip-card mt-4">
+        <view class="text-sm text-primary font-semibold">💡 已实现的同类工具参考</view>
+        <view class="text-xs text-secondary mt-2 leading-relaxed">
+          · 生活类 → BMI / 年龄 / 倒计时 / 手电筒{'\n'}
+          · 计算类 → 计算器 / 随机数 / 单位换算 / 时间戳{'\n'}
+          · 财务类 → 房贷 / 小费{'\n'}
+          · 文本类 → 备忘录 / 二维码
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view style="height: 80rpx;"></view>
+</view>
