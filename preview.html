@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Abdusalam 工具箱 · 微信小程序预览</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    min-height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Roboto, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(1200px 800px at 20% 0%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(1000px 700px at 90% 10%, rgba(6,182,212,0.12), transparent 60%),
+      linear-gradient(180deg, #05060d 0%, #0b0b18 100%);
+    color: #e8e8f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px 48px;
+  }
+  .page-header {
+    width: 100%;
+    max-width: 1200px;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .page-header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #a78bfa 0%, #22d3ee 100%);
+    -webkit-background-clip: text;
+    color: transparent;
+    letter-spacing: 0.5px;
+  }
+  .page-header p {
+    margin-top: 8px;
+    color: #8a8a9a;
+    font-size: 14px;
+  }
+  .phones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 36px;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 1400px;
+  }
+
+  /* Phone frame */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #0f0f1a;
+    border-radius: 54px;
+    padding: 14px;
+    box-shadow:
+      0 0 0 3px #1a1a2e,
+      0 0 0 5px #2a2a45,
+      0 30px 80px rgba(0,0,0,0.6),
+      inset 0 0 0 2px rgba(255,255,255,0.03);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #0f0f1a;
+    border-radius: 42px;
+    overflow: hidden;
+    position: relative;
+  }
+  /* Notch */
+  .notch {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 32px;
+    background: #000;
+    border-radius: 0 0 20px 20px / 0 0 18px 18px;
+    z-index: 50;
+  }
+  /* Status bar */
+  .status-bar {
+    height: 50px;
+    padding: 18px 28px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(180deg, #1a1033 0%, transparent 100%);
+    position: relative;
+    z-index: 10;
+  }
+  .status-bar .right { display: flex; gap: 6px; align-items: center; }
+  .status-bar .signal, .status-bar .wifi, .status-bar .battery { font-size: 12px; }
+
+  /* Page switcher */
+  .view {
+    position: absolute;
+    inset: 50px 0 78px 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: none;
+    scrollbar-width: none;
+    background: #0f0f1a;
+  }
+  .view::-webkit-scrollbar { display: none; }
+  .view.active { display: block; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px);} to { opacity:1; transform: none;} }
+
+  /* Tab Bar */
+  .tabbar {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 78px;
+    background: #141425;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    padding: 6px 10px 20px;
+    z-index: 40;
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #8a8a9a;
+    cursor: pointer;
+    font-size: 11px;
+    gap: 2px;
+    border-radius: 14px;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .tab .tab-icon { font-size: 22px; transition: transform 0.2s; }
+  .tab.active { color: #a78bfa; }
+  .tab.active .tab-icon { transform: translateY(-2px) scale(1.1); }
+  .tab:active { background: rgba(124,58,237,0.12); }
+
+  /* Phone label */
+  .phone-label {
+    position: absolute;
+    top: -30px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 13px;
+    color: #8a8a9a;
+    letter-spacing: 1px;
+  }
+  .phone-label b {
+    color: #a78bfa;
+    font-weight: 600;
+  }
+
+  /* ===================== Shared App Styles ===================== */
+  .container { padding: 0 16px 24px; }
+
+  .card {
+    background: linear-gradient(145deg, #1a1a2e 0%, #16162a 100%);
+    border: 1px solid rgba(124,58,237,0.1);
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(124,58,237,0.4);
+    font-size: 14px;
+  }
+  .btn-secondary {
+    background: rgba(124,58,237,0.15);
+    color: #a78bfa;
+    border: 1px solid rgba(124,58,237,0.3);
+    padding: 8px 18px;
+    border-radius: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .vip-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #1a1a2e;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .tool-icon {
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+  .icon-calc { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+  .icon-convert { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+  .icon-note { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .icon-time { background: linear-gradient(135deg, #10b981, #059669); }
+  .icon-weather { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+  .icon-qr { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+  .icon-random { background: linear-gradient(135deg, #ec4899, #db2777); }
+  .icon-compass { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+  .icon-flash { background: linear-gradient(135deg, #fde047, #facc15); }
+  .icon-id { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+  .icon-money { background: linear-gradient(135deg, #22c55e, #16a34a); }
+  .icon-bmi { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+  .icon-default { background: linear-gradient(135deg, #64748b, #475569); }
+
+  .text-primary { color: #ffffff; }
+  .text-secondary { color: #a0a0b8; }
+  .text-muted { color: #6b6b80; }
+  .text-accent { color: #a78bfa; }
+  .text-success { color: #34d399; }
+  .text-warning { color: #fbbf24; }
+  .text-danger { color: #f87171; }
+  .font-bold { font-weight: 700; }
+  .font-semibold { font-weight: 600; }
+
+  /* ===================== HOME VIEW ===================== */
+  .home-header {
+    padding: 12px 16px 16px;
+    background: linear-gradient(180deg, #1a1033 0%, #0f0f1a 100%);
+  }
+  .brand-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-icon {
+    width: 50px; height: 50px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(91,33,182,0.3));
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 34px;
+  }
+  .brand-title { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; color: #fff; }
+  .brand-sub { font-size: 11px; color: #8a8a9a; margin-top: 2px; }
+  .stats-pill {
+    padding: 6px 14px;
+    background: rgba(124,58,237,0.15);
+    border: 1px solid rgba(124,58,237,0.25);
+    border-radius: 9999px;
+    font-size: 11px;
+    color: #a0a0b8;
+  }
+  .stats-pill b { color: #a78bfa; }
+  .search-bar {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 10px 16px;
+  }
+  .search-bar input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: #fff; font-size: 14px;
+  }
+  .search-bar input::placeholder { color: #6b6b80; }
+
+  /* Banner */
+  .banner-wrap { padding: 14px 16px 0; }
+  .banner {
+    background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);
+    border-radius: 20px;
+    padding: 22px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    position: relative; overflow: hidden;
+    color: #fff;
+  }
+  .banner::after {
+    content: '';
+    position: absolute;
+    top: -40px; right: -30px;
+    width: 180px; height: 180px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+  }
+  .banner-tag {
+    display: inline-block; padding: 4px 12px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 9999px;
+    font-size: 11px; font-weight: 700;
+  }
+  .banner-title { font-size: 20px; font-weight: 800; margin-top: 8px; }
+  .banner-desc { font-size: 12px; opacity: 0.9; margin-top: 6px; }
+  .banner-emoji { font-size: 70px; position: relative; z-index: 1; }
+
+  .section { padding: 16px; }
+  .section-title {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .section-title h3 { font-size: 16px; font-weight: 700; color: #fff; }
+  .section-title .more { font-size: 12px; color: #8a8a9a; cursor: pointer; }
+
+  /* Quick grid */
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .quick-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 14px 4px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .quick-item:hover { background: rgba(124,58,237,0.12); transform: scale(0.98); }
+  .quick-item .tool-icon { width: 52px; height: 52px; border-radius: 16px; font-size: 26px; margin-bottom: 8px; }
+  .quick-name { font-size: 12px; color: #fff; text-align: center; line-height: 1.3; }
+
+  /* Stats card */
+  .stats-card {
+    margin: 0 16px;
+    padding: 20px 12px;
+    background: linear-gradient(145deg, #1a1a2e, #16162a);
+    border-radius: 20px;
+    border: 1px solid rgba(124,58,237,0.15);
+    display: flex; justify-content: space-around;
+    text-align: center;
+  }
+  .stats-num { font-size: 22px; font-weight: 800; }
+  .stats-label { font-size: 11px; color: #8a8a9a; margin-top: 4px; }
+
+  /* Hot list */
+  .hot-item {
+    display: flex; align-items: center; gap: 14px;
+    background: linear-gradient(145deg, #1a1a2e, #16162a);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(124,58,237,0.08);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .hot-item:hover { transform: translateY(-2px); }
+  .rank {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 800;
+    color: #6b6b80;
+    flex-shrink: 0;
+  }
+  .rank.top {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+  .arrow-btn {
+    width: 32px; height: 32px;
+    background: rgba(124,58,237,0.15);
+    color: #a78bfa;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 300;
+    flex-shrink: 0;
+  }
+
+  /* ===================== CATEGORY VIEW ===================== */
+  .cat-search { padding: 14px 16px; }
+  .cat-tabs {
+    white-space: nowrap;
+    overflow-x: auto;
+    padding: 8px 16px 12px;
+    display: flex;
+    gap: 8px;
+    scrollbar-width: none;
+  }
+  .cat-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 9999px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #d1d1e0;
+    flex-shrink: 0;
+  }
+  .cat-tab.active {
+    background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(91,33,182,0.3));
+    border-color: rgba(124,58,237,0.5);
+    color: #fff; font-weight: 600;
+  }
+  .tool-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 8px 16px 16px;
+  }
+  .grid-tool {
+    background: linear-gradient(145deg, #1a1a2e, #16162a);
+    border: 1px solid rgba(124,58,237,0.08);
+    border-radius: 16px;
+    padding: 16px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .grid-tool:hover { transform: translateY(-2px); }
+  .grid-tool .tool-icon { width: 46px; height: 46px; border-radius: 14px; font-size: 24px; margin: 0 auto 8px; }
+  .grid-tool-name { font-size: 12px; color: #fff; font-weight: 500; }
+  .grid-tool-desc { font-size: 10px; color: #6b6b80; margin-top: 3px; }
+  .vip-tag {
+    position: absolute; top: 6px; right: 6px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #1a1a2e;
+    font-size: 9px; font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 9999px;
+  }
+
+  /* ===================== CART VIEW ===================== */
+  .vip-card {
+    margin: 16px;
+    padding: 20px;
+    background: linear-gradient(135deg, #2d1f4e 0%, #1a1033 100%);
+    border: 1px solid rgba(251,191,36,0.25);
+    border-radius: 20px;
+    display: flex; align-items: center; gap: 14px;
+    position: relative; overflow: hidden;
+    color: #fff;
+  }
+  .vip-card .crown {
+    width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px;
+    background: linear-gradient(135deg, rgba(251,191,36,0.3), rgba(245,158,11,0.3));
+    border: 1px solid rgba(251,191,36,0.35);
+    border-radius: 18px;
+    flex-shrink: 0;
+  }
+  .vip-card h3 { font-size: 18px; font-weight: 800;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+  .vip-card p { font-size: 11px; color: #d1d1e0; margin-top: 4px; }
+  .vip-btn {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #1a1a2e;
+    font-size: 12px; font-weight: 700;
+    border-radius: 9999px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .cart-overview {
+    margin: 0 16px;
+    display: flex;
+    padding: 18px 0;
+    background: linear-gradient(145deg, #1a1a2e, #16162a);
+    border-radius: 18px;
+    border: 1px solid rgba(124,58,237,0.1);
+    text-align: center;
+  }
+  .cart-overview > div { flex: 1; }
+  .cart-num { font-size: 24px; font-weight: 800; color: #a78bfa; }
+  .cart-label { font-size: 11px; color: #8a8a9a; margin-top: 4px; }
+
+  .fav-list { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .fav-item {
+    display: flex; align-items: center; gap: 12px;
+    background: linear-gradient(145deg, #1a1a2e, #16162a);
+    border-radius: 16px;
+    padding: 14px;
+    border: 1px solid rgba(124,58,237,0.1);
+    cursor: pointer;
+  }
+  .fav-empty {
+    margin: 16px;
+    padding: 48px 16px;
+    text-align: center;
+    background: linear-gradient(145deg, #1a1a2e, #16162a);
+    border-radius: 20px;
+  }
+  .fav-empty .emoji { font-size: 60px; opacity: 0.3; }
+  .fav-empty h4 { margin-top: 14px; font-size: 16px; color: #fff; }
+  .fav-empty p { margin-top: 8px; font-size: 12px; color: #8a8a9a; }
+
+  /* ===================== MINE VIEW ===================== */
+  .profile-card {
+    margin: 16px;
+    padding: 20px;
+    background: linear-gradient(145deg, rgba(38,32,70,0.85), rgba(22,22,42,0.85));
+    border: 1px solid rgba(124,58,237,0.25);
+    border-radius: 20px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .avatar {
+    width: 64px; height: 64px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    border: 2px solid rgba(124,58,237,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 800; color: #fff;
+    flex-shrink: 0;
+  }
+  .profile-name { font-size: 18px; font-weight: 800; color: #fff; }
+  .profile-desc { font-size: 12px; color: #a0a0b8; margin-top: 4px; }
+  .login-btn {
+    padding: 8px 18px;
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    color: #fff;
+    border-radius: 9999px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    margin-left: auto;
+  }
+
+  .menu-group { padding: 12px 16px; }
+  .menu-group-title {
+    font-size: 11px;
+    color: #6b6b80;
+    padding: 8px 6px;
+  }
+  .menu-list {
+    background: linear-gradient(145deg, #1a1a2e, #16162a);
+    border-radius: 18px;
+    border: 1px solid rgba(124,58,237,0.08);
+    overflow: hidden;
+  }
+  .menu-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-item:hover { background: rgba(124,58,237,0.08); }
+  .menu-icon {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(124,58,237,0.1);
+    border-radius: 10px;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .menu-item .arrow { margin-left: auto; color: #8a8a9a; font-size: 20px; opacity: 0.5; }
+
+  /* ===================== TOOL DETAIL (overlay panel) ===================== */
+  .detail-overlay {
+    position: absolute; inset: 0;
+    background: #0f0f1a;
+    z-index: 100;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column;
+  }
+  .detail-overlay.show { transform: translateX(0); }
+  .detail-navbar {
+    height: 50px;
+    padding: 0 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(180deg, #1a1033 0%, #0f0f1a 100%);
+    flex-shrink: 0;
+  }
+  .back-btn {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 24px; cursor: pointer;
+    border-radius: 50%;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.08); }
+  .detail-title { font-size: 15px; font-weight: 700; color: #fff; }
+  .fav-btn-mini {
+    color: #fbbf24; font-size: 20px; cursor: pointer;
+    padding: 6px 10px;
+  }
+
+  .detail-scroll { flex: 1; overflow-y: auto; padding: 16px; scrollbar-width: none; }
+  .detail-scroll::-webkit-scrollbar { display: none; }
+
+  .tool-header {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 4px; margin-bottom: 20px;
+  }
+  .tool-header .tool-icon { width: 64px; height: 64px; border-radius: 22px; font-size: 34px; }
+  .tool-header h2 { font-size: 19px; font-weight: 800; color: #fff; }
+  .tool-header p { font-size: 12px; color: #a0a0b8; margin-top: 4px; line-height: 1.4; }
+
+  .input-card {
+    padding: 6px 18px;
+    background: linear-gradient(145deg, #1a1a2e, #16162a);
+    border-radius: 16px;
+    border: 1px solid rgba(124,58,237,0.12);
+    margin-bottom: 14px;
+  }
+  .input-row {
+    display: flex; align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    gap: 10px;
+  }
+  .input-row:last-child { border-bottom: none; }
+  .input-label { width: 90px; font-size: 13px; color: #a0a0b8; }
+  .input-row input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: #fff; font-size: 16px; font-weight: 600; text-align: right;
+  }
+  .input-unit { font-size: 13px; color: #8a8a9a; }
+
+  /* Calculator */
+  .calc-screen {
+    background: linear-gradient(145deg, #1a1a2e, #16162a);
+    padding: 28px 20px;
+    border-radius: 18px;
+    border: 1px solid rgba(124,58,237,0.15);
+    text-align: right;
+    margin-bottom: 14px;
+    min-height: 120px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .calc-history { font-size: 13px; color: #8a8a9a; min-height: 22px; word-break: break-all; }
+  .calc-display { font-size: 44px; color: #fff; font-weight: 300; letter-spacing: -1px; word-break: break-all; }
+  .calc-keypad { display: flex; flex-direction: column; gap: 10px; }
+  .calc-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .calc-btn {
+    height: 62px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(145deg, #2a2a45, #1e1e33);
+    color: #fff;
+    border-radius: 16px;
+    font-size: 22px; font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s;
+  }
+  .calc-btn:active { transform: scale(0.95); }
+  .calc-btn.op { background: linear-gradient(135deg, #7c3aed, #5b21b6); box-shadow: 0 4px 14px rgba(124,58,237,0.4); }
+  .calc-btn.fn { color: #a78bfa; background: linear-gradient(145deg, #3a3a55, #2a2a42); }
+  .calc-btn.eq { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; box-shadow: 0 4px 14px rgba(34,197,94,0.4); }
+
+  .result-card {
+    padding: 20px;
+    background: linear-gradient(145deg, #1a1a2e, #16162a);
+    border-radius: 18px;
+    border: 1px solid rgba(124,58,237,0.15);
+    margin-top: 14px;
+  }
+
+  .bmi-scale { margin-top: 18px; padding: 0 8px; }
+  .scale-bar {
+    height: 10px;
+    border-radius: 9999px;
+    display: flex; overflow: hidden;
+    position: relative;
+  }
+  .seg { flex: 1; }
+  .seg-under { background: #3b82f6; flex: 25; }
+  .seg-normal { background: #22c55e; flex: 30; }
+  .seg-over { background: #fbbf24; flex: 20; }
+  .seg-obese { background: #ef4444; flex: 25; }
+  .scale-pointer {
+    position: absolute;
+    top: -5px;
+    width: 3px; height: 20px;
+    background: #fff;
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(255,255,255,0.8);
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(-50%);
+  }
+  .scale-labels { display: flex; justify-content: space-between; font-size: 10px; color: #6b6b80; margin-top: 6px; }
+
+  .tag-pill {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .tag-ok { background: rgba(34,197,94,0.15); color: #34d399; }
+  .tag-warn { background: rgba(251,191,36,0.15); color: #fbbf24; }
+  .tag-bad { background: rgba(248,113,113,0.15); color: #f87171; }
+
+  .loan-tabs {
+    display: flex;
+    background: rgba(255,255,255,0.04);
+    border-radius: 9999px;
+    padding: 4px;
+    margin-bottom: 14px;
+  }
+  .loan-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    font-size: 13px;
+    color: #8a8a9a;
+    border-radius: 9999px;
+    cursor: pointer;
+  }
+  .loan-tab.active {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    color: #fff;
+    font-weight: 600;
+  }
+  .loan-stats {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+  }
+  .loan-stat {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  /* Side legend */
+  .legend {
+    align-self: flex-start;
+    margin: 0 auto;
+    max-width: 1200px;
+    width: 100%;
+    padding: 0 16px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    font-size: 13px;
+    color: #a0a0b8;
+  }
+  .legend .dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Abdusalam 工具箱 · 微信小程序预览</h1>
+    <p>通用工具类 · 暗色模式 · 4 个 Tab 页 · 点击工具卡片可查看详情页（含真实可用的计算器 / BMI / 随机数 / 房贷 / 小费 / 年龄等）</p>
+  </div>
+
+  <div class="legend">
+    <div><span class="dot" style="background:#a78bfa"></span>4 底部 Tab 可切换</div>
+    <div><span class="dot" style="background:#22c55e"></span>工具卡片可点击进入详情</div>
+    <div><span class="dot" style="background:#fbbf24"></span>计算器、BMI、房贷等功能真实可交互</div>
+    <div><span class="dot" style="background:#ef4444"></span>VIP 阻挡逻辑已实现</div>
+  </div>
+
+  <div class="phones">
+    <!-- ============= PHONE 1: HOME + CATEGORY (switches via tabs) ============= -->
+    <div class="phone" id="phone1">
+      <div class="phone-label"><b>① 首页 / 分类 / 工具箱 / 我的</b> · 底部 Tab 切换</div>
+      <div class="phone-screen">
+        <div class="notch"></div>
+        <div class="status-bar">
+          <div>9:41</div>
+          <div class="right">
+            <span class="signal">●●●●</span>
+            <span class="wifi">📶</span>
+            <span class="battery">🔋</span>
+          </div>
+        </div>
+
+        <!-- ===== HOME ===== -->
+        <div class="view active" data-view="home">
+          <div class="home-header">
+            <div class="brand-row">
+              <div class="brand">
+                <div class="brand-icon">✨</div>
+                <div>
+                  <div class="brand-title">Abdusalam</div>
+                  <div class="brand-sub">你的全能工具箱</div>
+                </div>
+              </div>
+              <div class="stats-pill"><b>20+</b> 工具</div>
+            </div>
+            <div class="search-bar">
+              <span style="opacity:0.5;">🔍</span>
+              <input placeholder="搜索工具，如：计算器、二维码..." />
+            </div>
+          </div>
+
+          <div class="banner-wrap">
+            <div class="banner">
+              <div>
+                <span class="banner-tag">限时</span>
+                <div class="banner-title">新版上线</div>
+                <div class="banner-desc">20+ 工具全新升级</div>
+              </div>
+              <div class="banner-emoji">🎁</div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">
+              <h3>快捷工具</h3>
+              <span class="more" onclick="switchTab('cat')">全部 ›</span>
+            </div>
+            <div class="quick-grid" id="quick-grid"></div>
+          </div>
+
+          <div class="stats-card">
+            <div>
+              <div class="stats-num text-accent">20+</div>
+              <div class="stats-label">实用工具</div>
+            </div>
+            <div>
+              <div class="stats-num text-success">6</div>
+              <div class="stats-label">工具分类</div>
+            </div>
+            <div>
+              <div class="stats-num text-warning">1280万+</div>
+              <div class="stats-label">累计用户</div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">
+              <h3>🔥 热门推荐</h3>
+            </div>
+            <div id="hot-list"></div>
+          </div>
+        </div>
+
+        <!-- ===== CATEGORY ===== -->
+        <div class="view" data-view="cat">
+          <div class="cat-search">
+            <div class="search-bar">
+              <span style="opacity:0.5;">🔍</span>
+              <input placeholder="搜索工具名称或描述..." />
+            </div>
+          </div>
+          <div class="cat-tabs" id="cat-tabs"></div>
+          <div class="list-header" style="padding: 6px 22px 0; display:flex; justify-content:space-between; font-size:13px;">
+            <span style="font-weight:600; color:#fff;">全部工具</span>
+            <span class="text-muted" id="cat-count">20 项</span>
+          </div>
+          <div class="tool-grid" id="tool-grid"></div>
+        </div>
+
+        <!-- ===== CART ===== -->
+        <div class="view" data-view="cart">
+          <div class="vip-card">
+            <div class="crown">👑</div>
+            <div style="flex:1;">
+              <h3>升级为会员</h3>
+              <p>解锁全部VIP工具 · 云端同步 · 纯净无广</p>
+            </div>
+            <div class="vip-btn" onclick="alert('跳转到会员开通页')">立即开通</div>
+          </div>
+          <div class="cart-overview">
+            <div><div class="cart-num" id="fav-count-num">3</div><div class="cart-label">已收藏工具</div></div>
+            <div><div class="cart-num text-warning">14</div><div class="cart-label">可使用工具</div></div>
+            <div><div class="cart-num text-success">∞</div><div class="cart-label">收藏上限</div></div>
+          </div>
+          <div class="section-title" style="padding: 16px 16px 0;">
+            <h3>⭐ 我的收藏</h3>
+          </div>
+          <div class="fav-list" id="fav-list"></div>
+        </div>
+
+        <!-- ===== MINE ===== -->
+        <div class="view" data-view="mine">
+          <div class="profile-card">
+            <div class="avatar">A</div>
+            <div style="flex:1;">
+              <div class="profile-name">Abdusalam 用户</div>
+              <div class="profile-desc">👑 已解锁全部特权</div>
+            </div>
+            <div class="login-btn" style="background:rgba(255,255,255,0.05);color:#8a8a9a;font-weight:500;">退出</div>
+          </div>
+
+          <div class="cart-overview" style="margin: 0 16px;">
+            <div><div class="cart-num text-accent">12</div><div class="cart-label">使用记录</div></div>
+            <div><div class="cart-num text-warning">3</div><div class="cart-label">收藏工具</div></div>
+            <div><div class="cart-num text-success">20+</div><div class="cart-label">工具总数</div></div>
+          </div>
+
+          <div class="menu-group">
+            <div class="menu-group-title">数据管理</div>
+            <div class="menu-list">
+              <div class="menu-item"><div class="menu-icon">🕒</div><div style="flex:1;"><div style="color:#fff; font-size:14px;">使用历史</div><div style="color:#8a8a9a; font-size:11px; margin-top:2px;">最近使用的工具记录</div></div><span class="tag-pill tag-warn" style="font-size:11px;">12</span><span class="arrow">›</span></div>
+              <div class="menu-item"><div class="menu-icon">⭐</div><div style="flex:1;"><div style="color:#fff; font-size:14px;">我的收藏</div><div style="color:#8a8a9a; font-size:11px; margin-top:2px;">收藏过的所有工具</div></div><span class="tag-pill tag-ok" style="font-size:11px;">3</span><span class="arrow">›</span></div>
+              <div class="menu-item"><div class="menu-icon">🗑️</div><div style="flex:1;"><div style="color:#fff; font-size:14px;">清空缓存</div><div style="color:#8a8a9a; font-size:11px; margin-top:2px;">清理本地数据和缓存</div></div><span class="arrow">›</span></div>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <div class="menu-group-title">个性化</div>
+            <div class="menu-list">
+              <div class="menu-item"><div class="menu-icon">🎨</div><div style="flex:1;"><div style="color:#fff; font-size:14px;">主题设置</div><div style="color:#8a8a9a; font-size:11px; margin-top:2px;">切换主题风格与配色</div></div><span class="tag-pill" style="background:rgba(124,58,237,0.15); color:#a78bfa;">暗色</span><span class="arrow">›</span></div>
+              <div class="menu-item"><div class="menu-icon">🌐</div><div style="flex:1;"><div style="color:#fff; font-size:14px;">语言设置</div><div style="color:#8a8a9a; font-size:11px; margin-top:2px;">简体中文 / English</div></div><span class="tag-pill" style="background:rgba(124,58,237,0.15); color:#a78bfa;">中文</span><span class="arrow">›</span></div>
+            </div>
+          </div>
+
+          <div class="menu-group">
+            <div class="menu-group-title">关于</div>
+            <div class="menu-list">
+              <div class="menu-item"><div class="menu-icon">ℹ️</div><div style="flex:1;"><div style="color:#fff; font-size:14px;">关于 Abdusalam</div><div style="color:#8a8a9a; font-size:11px; margin-top:2px;">版本 1.0.0</div></div><span class="arrow">›</span></div>
+              <div class="menu-item"><div class="menu-icon">⭐</div><div style="flex:1;"><div style="color:#fff; font-size:14px;">给个好评</div><div style="color:#8a8a9a; font-size:11px; margin-top:2px;">支持作者持续更新</div></div><span class="arrow">›</span></div>
+              <div class="menu-item"><div class="menu-icon">💬</div><div style="flex:1;"><div style="color:#fff; font-size:14px;">意见反馈</div><div style="color:#8a8a9a; font-size:11px; margin-top:2px;">帮助我们变得更好</div></div><span class="arrow">›</span></div>
+            </div>
+          </div>
+
+          <div style="text-align:center; padding: 16px; font-size:11px; color:#6b6b80;">
+            Made with ❤️ by Abdusalam Studio<br/>
+            <span style="opacity:0.6;">v1.0.0 · © 2024 All Rights Reserved</span>
+          </div>
+        </div>
+
+        <!-- ===== TOOL DETAIL OVERLAY ===== -->
+        <div class="detail-overlay" id="detail-overlay">
+          <div class="detail-navbar">
+            <div class="back-btn" onclick="closeDetail()">‹</div>
+            <div class="detail-title" id="detail-title">工具详情</div>
+            <div class="fav-btn-mini">⭐</div>
+          </div>
+          <div class="detail-scroll" id="detail-content"></div>
+        </div>
+
+        <!-- ===== TAB BAR ===== -->
+        <div class="tabbar">
+          <div class="tab active" data-tab="home" onclick="switchTab('home')">
+            <div class="tab-icon">🏠</div><div>首页</div>
+          </div>
+          <div class="tab" data-tab="cat" onclick="switchTab('cat')">
+            <div class="tab-icon">📂</div><div>分类</div>
+          </div>
+          <div class="tab" data-tab="cart" onclick="switchTab('cart')">
+            <div class="tab-icon">🧰</div><div>工具箱</div>
+          </div>
+          <div class="tab" data-tab="mine" onclick="switchTab('mine')">
+            <div class="tab-icon">👤</div><div>我的</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============= PHONE 2: TOOL DETAIL (default open Calculator) ============= -->
+    <div class="phone" id="phone2">
+      <div class="phone-label"><b>② 工具详情页（真实可交互）</b> · 默认为计算器，可切换</div>
+      <div class="phone-screen">
+        <div class="notch"></div>
+        <div class="status-bar">
+          <div>9:41</div>
+          <div class="right">
+            <span class="signal">●●●●</span>
+            <span class="wifi">📶</span>
+            <span class="battery">🔋</span>
+          </div>
+        </div>
+
+        <div style="position:absolute; inset:50px 0 0 0; overflow-y:auto; padding: 16px;" id="phone2-content">
+          <!-- Injected at runtime -->
+        </div>
+
+        <div style="position:absolute; left:0; right:0; bottom:10px; display:flex; gap:6px; justify-content:center; z-index:50; padding: 0 16px; flex-wrap: wrap;">
+          <button class="btn-secondary" style="font-size:11px; padding: 6px 12px;" onclick="openToolInPhone2('calculator')">计算器</button>
+          <button class="btn-secondary" style="font-size:11px; padding: 6px 12px;" onclick="openToolInPhone2('bmi')">BMI</button>
+          <button class="btn-secondary" style="font-size:11px; padding: 6px 12px;" onclick="openToolInPhone2('random')">随机数</button>
+          <button class="btn-secondary" style="font-size:11px; padding: 6px 12px;" onclick="openToolInPhone2('loan')">房贷</button>
+          <button class="btn-secondary" style="font-size:11px; padding: 6px 12px;" onclick="openToolInPhone2('tip')">小费</button>
+          <button class="btn-secondary" style="font-size:11px; padding: 6px 12px;" onclick="openToolInPhone2('age')">年龄</button>
+          <button class="btn-secondary" style="font-size:11px; padding: 6px 12px;" onclick="openToolInPhone2('notes')">备忘录</button>
+          <button class="btn-secondary" style="font-size:11px; padding: 6px 12px;" onclick="openToolInPhone2('countdown')">倒计时</button>
+          <button class="btn-secondary" style="font-size:11px; padding: 6px 12px;" onclick="openToolInPhone2('flashlight')">手电筒</button>
+          <button class="btn-secondary" style="font-size:11px; padding: 6px 12px;" onclick="openToolInPhone2('timestamp')">时间戳</button>
+          <button class="btn-secondary" style="font-size:11px; padding: 6px 12px;" onclick="openToolInPhone2('loan',true)">VIP阻挡</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+/* =========================================================
+   DATA (mirrored from utils/tools-data.js)
+========================================================= */
+const TOOLS = [
+  { id:'calculator', name:'万能计算器', icon:'🧮', iconClass:'icon-calc', desc:'基础+科学计算，一键解决', isVip:false, users:'128万+' },
+  { id:'unit-convert', name:'单位换算', icon:'📐', iconClass:'icon-convert', desc:'长度/重量/温度等20+种单位', isVip:false, users:'98万+' },
+  { id:'bmi', name:'BMI健康计算器', icon:'⚖️', iconClass:'icon-bmi', desc:'输入身高体重，分析健康状态', isVip:false, users:'76万+' },
+  { id:'notes', name:'随身备忘录', icon:'📝', iconClass:'icon-note', desc:'轻量记录，本地加密存储', isVip:false, users:'65万+' },
+  { id:'countdown', name:'倒计时纪念日', icon:'⏱️', iconClass:'icon-time', desc:'重要日子，精准提醒', isVip:false, users:'54万+' },
+  { id:'weather', name:'天气查询', icon:'🌤️', iconClass:'icon-weather', desc:'实时天气，7天预报', isVip:false, users:'112万+' },
+  { id:'qr-code', name:'二维码生成器', icon:'📱', iconClass:'icon-qr', desc:'文本/链接快速生成二维码', isVip:false, users:'89万+' },
+  { id:'random', name:'随机数生成器', icon:'🎲', iconClass:'icon-random', desc:'抽奖/抽签/分组随机生成', isVip:false, users:'43万+' },
+  { id:'compass', name:'指南针', icon:'🧭', iconClass:'icon-compass', desc:'精准定位方向与海拔', isVip:false, users:'38万+' },
+  { id:'flashlight', name:'手电筒', icon:'🔦', iconClass:'icon-flash', desc:'一键开屏亮灯，黑夜好帮手', isVip:false, users:'57万+' },
+  { id:'id-query', name:'身份证信息查询', icon:'🪪', iconClass:'icon-id', desc:'查询归属地/性别/生日', isVip:true, users:'31万+' },
+  { id:'currency', name:'汇率换算', icon:'💱', iconClass:'icon-money', desc:'实时全球货币汇率', isVip:false, users:'47万+' },
+  { id:'loan', name:'房贷计算器', icon:'🏦', iconClass:'icon-money', desc:'等额本息/本金精准计算', isVip:true, users:'62万+' },
+  { id:'tax', name:'个税计算器', icon:'🧾', iconClass:'icon-money', desc:'2024最新个税计算标准', isVip:true, users:'29万+' },
+  { id:'tip', name:'小费分摊计算', icon:'💵', iconClass:'icon-money', desc:'聚餐AA制与小费计算', isVip:false, users:'18万+' },
+  { id:'age', name:'年龄计算', icon:'🎂', iconClass:'icon-default', desc:'精确计算周岁/虚岁/天数', isVip:false, users:'24万+' },
+  { id:'timestamp', name:'时间戳转换', icon:'⏰', iconClass:'icon-time', desc:'Unix时间戳与日期互转', isVip:false, users:'37万+' },
+  { id:'base64', name:'Base64 编码', icon:'🔐', iconClass:'icon-default', desc:'文本 Base64 编码解码', isVip:true, users:'15万+' },
+  { id:'color', name:'颜色取色器', icon:'🎨', iconClass:'icon-default', desc:'图片取色/RGB/HEX转换', isVip:true, users:'12万+' },
+  { id:'qr-scan', name:'扫码识别', icon:'🔍', iconClass:'icon-qr', desc:'扫一扫，识别二维码/条形码', isVip:false, users:'82万+' }
+];
+
+const CAT_TABS = [
+  { id:'all', name:'全部', icon:'🎯' },
+  { id:'daily', name:'日常生活', icon:'🏠' },
+  { id:'calculate', name:'计算换算', icon:'🧮' },
+  { id:'finance', name:'财务理财', icon:'💰' },
+  { id:'text', name:'文本处理', icon:'📝' },
+  { id:'image', name:'图片工具', icon:'🖼️' },
+  { id:'device', name:'设备功能', icon:'📱' }
+];
+
+const FAV_IDS = ['calculator', 'bmi', 'loan']; // 预置收藏
+
+/* =========================================================
+   RENDER HELPERS
+========================================================= */
+function toolHTML(t, extraClass='') {
+  return `
+    <div class="${extraClass}" onclick="openTool('${t.id}')">
+      <div class="tool-icon ${t.iconClass}">${t.icon}</div>
+      <div style="flex:1; min-width:0;">
+        <div style="display:flex; align-items:center;">
+          <span style="color:#fff; font-size:14px; font-weight:600;">${t.name}</span>
+          ${t.isVip ? '<span class="vip-badge">VIP</span>' : ''}
+        </div>
+        <div style="font-size:11px; color:#8a8a9a; margin-top:4px;">${t.desc}</div>
+        <div style="font-size:10px; color:#6b6b80; margin-top:3px;">👥 ${t.users} 人使用</div>
+      </div>
+    </div>`;
+}
+
+function renderQuickGrid() {
+  const quick = TOOLS.slice(0, 8);
+  const html = quick.map(t => `
+    <div class="quick-item" onclick="openTool('${t.id}')">
+      <div class="tool-icon ${t.iconClass}">${t.icon}</div>
+      <div class="quick-name">${t.name}</div>
+      ${t.isVip ? '<span class="vip-tag" style="position:absolute;top:6px;right:6px;">VIP</span>' : ''}
+    </div>
+  `).join('');
+  document.getElementById('quick-grid').innerHTML = html;
+}
+
+function renderHotList() {
+  const hot = TOOLS.filter(t => ['calculator','unit-convert','bmi','qr-code','loan'].includes(t.id));
+  const html = hot.map((t,i) => `
+    <div class="hot-item" onclick="openTool('${t.id}')">
+      <div class="rank ${i<3?'top':''}">${i+1}</div>
+      <div class="tool-icon ${t.iconClass}" style="width:46px; height:46px; border-radius:14px; font-size:24px;">${t.icon}</div>
+      <div style="flex:1;">
+        <div style="display:flex; align-items:center;">
+          <span style="color:#fff; font-weight:600; font-size:14px;">${t.name}</span>
+          ${t.isVip ? '<span class="vip-badge">VIP</span>' : ''}
+        </div>
+        <div style="color:#8a8a9a; font-size:11px; margin-top:3px;">${t.desc}</div>
+        <div style="color:#6b6b80; font-size:10px; margin-top:3px;">👥 ${t.users}</div>
+      </div>
+      <div class="arrow-btn">›</div>
+    </div>
+  `).join('');
+  document.getElementById('hot-list').innerHTML = html;
+}
+
+function renderCatTabs() {
+  document.getElementById('cat-tabs').innerHTML = CAT_TABS.map((c,i) => `
+    <div class="cat-tab ${i===0?'active':''}" data-cat="${c.id}" onclick="filterCat('${c.id}', this)">
+      <span>${c.icon}</span><span>${c.name}</span>
+    </div>
+  `).join('');
+}
+
+function renderToolGrid(catId='all') {
+  const list = TOOLS; // for preview, always show all
+  document.getElementById('cat-count').textContent = `${list.length} 项`;
+  document.getElementById('tool-grid').innerHTML = list.map(t => `
+    <div class="grid-tool" onclick="openTool('${t.id}')">
+      ${t.isVip ? '<span class="vip-tag">VIP</span>' : ''}
+      <div class="tool-icon ${t.iconClass}">${t.icon}</div>
+      <div class="grid-tool-name">${t.name}</div>
+      <div class="grid-tool-desc">${t.users}</div>
+    </div>
+  `).join('');
+}
+
+function filterCat(id, el) {
+  document.querySelectorAll('#cat-tabs .cat-tab').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  renderToolGrid(id);
+}
+
+function renderFavList() {
+  const favs = FAV_IDS.map(id => TOOLS.find(t => t.id === id)).filter(Boolean);
+  document.getElementById('fav-count-num').textContent = favs.length;
+  document.getElementById('fav-list').innerHTML = favs.map(t => `
+    <div class="fav-item" onclick="openTool('${t.id}')">
+      <div class="tool-icon ${t.iconClass}" style="width:48px; height:48px; border-radius:14px; font-size:26px;">${t.icon}</div>
+      <div style="flex:1;">
+        <div style="display:flex; align-items:center;">
+          <span style="color:#fff; font-weight:600; font-size:14px;">${t.name}</span>
+          ${t.isVip ? '<span class="vip-badge">VIP</span>' : ''}
+        </div>
+        <div style="color:#8a8a9a; font-size:11px; margin-top:4px;">${t.desc}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* =========================================================
+   TAB SWITCHING (Phone 1)
+========================================================= */
+function switchTab(name) {
+  document.querySelectorAll('#phone1 .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('#phone1 .view').forEach(v => v.classList.toggle('active', v.dataset.view === name));
+  // sync status: when switching to category, re-render; to cart re-render favs
+  if (name === 'cart') renderFavList();
+}
+
+/* =========================================================
+   TOOL DETAIL RENDERER (works for both phones)
+========================================================= */
+function headerHTML(t) {
+  return `
+    <div class="tool-header">
+      <div class="tool-icon ${t.iconClass}">${t.icon}</div>
+      <div style="flex:1;">
+        <div style="display:flex; align-items:center;">
+          <h2>${t.name}</h2>
+          ${t.isVip ? '<span class="vip-badge">VIP</span>' : ''}
+        </div>
+        <p>${t.desc}</p>
+        <div style="margin-top:6px; font-size:11px; color:#6b6b80;">👥 ${t.users} 人使用</div>
+      </div>
+    </div>
+  `;
+}
+
+function vipBlockHTML(t) {
+  return `
+    <div style="padding:56px 24px; background: linear-gradient(180deg, rgba(45,31,78,0.8), rgba(20,20,37,0.8)); border-radius: 20px; text-align:center; border:1px solid rgba(251,191,36,0.3); margin-top:8px;">
+      <div style="font-size:84px; filter: drop-shadow(0 4px 16px rgba(251,191,36,0.4)); margin-bottom:8px;">👑</div>
+      <div style="font-size:19px; font-weight:800; color:#fff;">会员专属功能</div>
+      <div style="font-size:12px; color:#a0a0b8; margin-top:10px; line-height:1.6;">「${t.name}」仅会员可使用<br/>开通会员立即解锁 10+ 高级工具</div>
+      <button class="btn-primary" style="margin-top:24px;">去开通会员 ¥12/月起</button>
+    </div>
+  `;
+}
+
+/* --- Individual tool body renderers --- */
+// Calculator
+const calc = { display:'0', history:'', prev:null, op:null, waiting:false };
+function calcHTML() {
+  return `
+    <div class="calc-screen">
+      <div class="calc-history">${calc.history || '&nbsp;'}</div>
+      <div class="calc-display" id="calc-display-el">${calc.display}</div>
+    </div>
+    <div class="calc-keypad">
+      ${[
+        ['C','±','%','÷'],['7','8','9','×'],['4','5','6','-'],['1','2','3','+'],['0','.','⌫','=']
+      ].map(row => `
+        <div class="calc-row">
+          ${row.map(v => {
+            let cls = 'calc-btn';
+            if (v === '=') cls += ' eq';
+            else if (['÷','×','-','+'].includes(v)) cls += ' op';
+            else if (['C','±','%'].includes(v)) cls += ' fn';
+            return `<div class="${cls}" onclick="pressCalc('${v}')">${v}</div>`;
+          }).join('')}
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+function pressCalc(v) {
+  let d = calc.display;
+  if (v >= '0' && v <= '9') d = (calc.waiting || d === '0') ? v : d + v, calc.waiting = false;
+  else if (v === '.') { if (!d.includes('.')) d += '.'; }
+  else if (v === 'C') { calc.display='0'; calc.history=''; calc.prev=null; calc.op=null; calc.waiting=false; }
+  else if (v === '⌫') d = d.length > 1 ? d.slice(0,-1) : '0';
+  else if (v === '=') {
+    if (calc.op && calc.prev !== null) {
+      const r = doCalc(calc.prev, parseFloat(d), calc.op);
+      calc.history = `${calc.prev} ${calc.op} ${d} =`;
+      calc.display = fmt(r); calc.prev = null; calc.op = null; calc.waiting = true;
+    }
+  } else if (['÷','×','-','+'].includes(v)) {
+    const cur = parseFloat(d);
+    let prev = calc.prev, op = calc.op;
+    if (prev === null) prev = cur;
+    else if (op && !calc.waiting) { prev = doCalc(prev, cur, op); d = fmt(prev); }
+    calc.prev = prev; calc.op = v; calc.history = `${prev} ${v}`; calc.display = d; calc.waiting = true;
+  } else if (v === '%') d = fmt(parseFloat(d)/100);
+  else if (v === '±') d = fmt(-parseFloat(d));
+  calc.display = d;
+  const el = document.getElementById('calc-display-el');
+  if (el) el.textContent = calc.display;
+  const el2 = document.querySelector('.calc-history');
+  if (el2) el2.innerHTML = calc.history || '&nbsp;';
+}
+function doCalc(a,b,op) {
+  if (op==='+') return a+b;
+  if (op==='-') return a-b;
+  if (op==='×') return a*b;
+  if (op==='÷') return b===0 ? NaN : a/b;
+}
+function fmt(n) {
+  if (isNaN(n) || !isFinite(n)) return 'Error';
+  if (Math.abs(n) > 1e12 || (Math.abs(n) < 1e-6 && n !== 0)) return n.toExponential(6);
+  return String(parseFloat(n.toPrecision(12)));
+}
+
+// BMI
+const bmi = { height:'', weight:'', result:null };
+function bmiHTML() {
+  return `
+    ${headerHTML(TOOLS.find(t=>t.id==='bmi'))}
+    <div class="input-card">
+      <div class="input-row">
+        <div class="input-label">身高</div>
+        <input type="number" placeholder="0" value="${bmi.height}" oninput="bmi.height=this.value" />
+        <div class="input-unit">cm</div>
+      </div>
+      <div class="input-row">
+        <div class="input-label">体重</div>
+        <input type="number" placeholder="0" value="${bmi.weight}" oninput="bmi.weight=this.value" />
+        <div class="input-unit">kg</div>
+      </div>
+    </div>
+    <button class="btn-primary" style="width:100%;" onclick="runBmi()">计算 BMI</button>
+    ${bmi.result ? `
+      <div class="result-card">
+        <div style="font-size:12px; color:#a0a0b8;">你的 BMI 指数</div>
+        <div style="display:flex; align-items:center; margin-top:6px;">
+          <div style="font-size:48px; font-weight:800; letter-spacing:-1px; color:${
+            bmi.result.tag==='正常'?'#34d399':bmi.result.tag==='肥胖'?'#f87171':'#fbbf24'};">${bmi.result.value}</div>
+          <span class="tag-pill tag-${bmi.result.cls}" style="margin-left:16px;">${bmi.result.tag}</span>
+        </div>
+        <div style="height:1px; background:linear-gradient(90deg,transparent,rgba(124,58,237,0.3),transparent); margin:18px 0;"></div>
+        <div style="font-size:13px; color:#fff;">💡 ${bmi.result.tip}</div>
+        <div style="font-size:11px; color:#a0a0b8; margin-top:6px;">✅ ${bmi.result.advise}</div>
+        <div class="bmi-scale">
+          <div class="scale-bar">
+            <div class="seg seg-under"></div><div class="seg seg-normal"></div><div class="seg seg-over"></div><div class="seg seg-obese"></div>
+            <div class="scale-pointer" style="left:${bmi.result.pct}%;"></div>
+          </div>
+          <div class="scale-labels"><span>18.5</span><span>24</span><span>28</span><span>38</span></div>
+        </div>
+      </div>` : ''}
+  `;
+}
+function runBmi() {
+  const h = parseFloat(bmi.height), w = parseFloat(bmi.weight);
+  if (!h || !w || h<=0 || w<=0) { alert('请输入正确的身高体重'); return; }
+  const v = parseFloat((w / Math.pow(h/100,2)).toFixed(1));
+  let tag, cls, tip, advise, pct;
+  if (v < 18.5) { tag='偏瘦'; cls='warn'; tip='建议适当增加营养摄入'; advise='多吃蛋白质 + 力量训练'; pct = Math.max(2, v/18.5*23); }
+  else if (v < 24) { tag='正常'; cls='ok'; tip='非常棒的健康状态'; advise='保持均衡饮食 + 规律运动'; pct = 25 + (v-18.5)/5.5*30; }
+  else if (v < 28) { tag='偏胖'; cls='warn'; tip='建议适当控制饮食与运动'; advise='健康减重: 热量缺口 + 有氧运动'; pct = 55 + (v-24)/4*20; }
+  else { tag='肥胖'; cls='bad'; tip='建议咨询医生制定减重计划'; advise='综合饮食+运动+生活调整'; pct = Math.min(97, 75 + Math.min((v-28),10)/10*22); }
+  bmi.result = { value:v, tag, cls, tip, advise, pct };
+  rerenderPhone2();
+}
+
+// Random
+const rand = { min:1, max:100, count:1, repeat:true, result:[] };
+function randHTML() {
+  return `
+    ${headerHTML(TOOLS.find(t=>t.id==='random'))}
+    <div class="input-card">
+      <div class="input-row"><div class="input-label">最小值</div><input type="number" value="${rand.min}" oninput="rand.min=+this.value" /></div>
+      <div class="input-row"><div class="input-label">最大值</div><input type="number" value="${rand.max}" oninput="rand.max=+this.value" /></div>
+      <div class="input-row"><div class="input-label">生成数量</div><input type="number" value="${rand.count}" oninput="rand.count=+this.value" /></div>
+      <div class="input-row">
+        <div class="input-label" style="flex:1;">允许重复</div>
+        <input type="checkbox" ${rand.repeat?'checked':''} onchange="rand.repeat=this.checked" style="transform:scale(1.3); accent-color:#7c3aed;" />
+      </div>
+    </div>
+    <button class="btn-primary" style="width:100%;" onclick="runRandom()">🎲 生成随机数</button>
+    ${rand.result.length ? `
+      <div class="result-card">
+        <div style="font-size:12px; color:#a0a0b8; margin-bottom:10px;">生成结果（${rand.result.length} 个）</div>
+        <div style="display:flex; flex-wrap:wrap; gap:10px;">
+          ${rand.result.map(x => `<div style="padding:10px 18px; background:linear-gradient(135deg, rgba(124,58,237,0.2), rgba(91,33,182,0.15)); border:1px solid rgba(124,58,237,0.4); border-radius:10px; color:#a78bfa; font-weight:700; font-size:18px;">${x}</div>`).join('')}
+        </div>
+      </div>` : ''}
+  `;
+}
+function runRandom() {
+  let mn = +rand.min, mx = +rand.max, cnt = +rand.count || 1;
+  if (mx < mn) { [mn, mx] = [mx, mn]; }
+  const range = mx - mn + 1;
+  if (!rand.repeat && cnt > range) { cnt = range; alert(`不重复最多生成 ${range} 个`); }
+  const out = [];
+  if (rand.repeat) for (let i=0;i<cnt;i++) out.push(Math.floor(Math.random()*range)+mn);
+  else {
+    const pool = []; for (let i=mn;i<=mx;i++) pool.push(i);
+    for (let i=0;i<cnt;i++) { const idx=Math.floor(Math.random()*pool.length); out.push(pool.splice(idx,1)[0]); }
+  }
+  rand.result = out; rerenderPhone2();
+}
+
+// Loan
+const loan = { type:'equal_payment', amount:'', years:30, rate:3.1, result:null };
+function loanHTML(isVipBlock) {
+  const t = TOOLS.find(x=>x.id==='loan');
+  if (isVipBlock) return headerHTML(t) + vipBlockHTML(t);
+  return `
+    ${headerHTML(t)}
+    <div class="loan-tabs">
+      <div class="loan-tab ${loan.type==='equal_payment'?'active':''}" onclick="loan.type='equal_payment';loan.result=null;rerenderPhone2();">等额本息</div>
+      <div class="loan-tab ${loan.type==='equal_principal'?'active':''}" onclick="loan.type='equal_principal';loan.result=null;rerenderPhone2();">等额本金</div>
+    </div>
+    <div class="input-card">
+      <div class="input-row"><div class="input-label">贷款金额</div><input type="number" placeholder="100" value="${loan.amount}" oninput="loan.amount=this.value" /><div class="input-unit">万元</div></div>
+      <div class="input-row">
+        <div class="input-label">贷款年限</div>
+        <select onchange="loan.years=+this.value;rerenderPhone2();" style="flex:1; background:transparent; border:none; color:#a78bfa; font-weight:600; text-align:right; font-size:15px; outline:none; direction:rtl;">
+          ${[5,10,15,20,25,30].map(y => `<option value="${y}" ${y===loan.years?'selected':''} style="background:#16162a;">${y} 年</option>`).join('')}
+        </select>
+      </div>
+      <div class="input-row"><div class="input-label">年利率</div><input type="number" step="0.01" placeholder="3.10" value="${loan.rate}" oninput="loan.rate=this.value" /><div class="input-unit">%</div></div>
+    </div>
+    <button class="btn-primary" style="width:100%;" onclick="runLoan()">开始计算</button>
+    ${loan.result ? `
+      <div class="result-card">
+        <div style="font-size:11px; color:#a78bfa; font-weight:600; margin-bottom:10px;">还款方式：${loan.result.type}</div>
+        <div class="loan-stats">
+          ${loan.result.mode===1 ? `
+            <div class="loan-stat" style="grid-column: span 2;"><div style="font-size:11px; color:#a0a0b8;">月供（每月相同）</div><div style="font-size:22px; font-weight:800; color:#fff; margin-top:6px;">¥${loan.result.monthly}</div></div>`
+          : `
+            <div class="loan-stat"><div style="font-size:11px; color:#a0a0b8;">首月还款</div><div style="font-size:18px; font-weight:800; color:#fff; margin-top:6px;">¥${loan.result.fm}</div></div>
+            <div class="loan-stat"><div style="font-size:11px; color:#a0a0b8;">末月还款</div><div style="font-size:18px; font-weight:800; color:#fff; margin-top:6px;">¥${loan.result.lm}</div></div>`
+          }
+          <div class="loan-stat"><div style="font-size:11px; color:#a0a0b8;">还款总额</div><div style="font-size:16px; font-weight:700; color:#a78bfa; margin-top:6px;">${loan.result.total}万</div></div>
+          <div class="loan-stat"><div style="font-size:11px; color:#a0a0b8;">贷款本金</div><div style="font-size:16px; color:#fff; margin-top:6px;">${loan.result.principal}万</div></div>
+          <div class="loan-stat" style="grid-column: span 2;"><div style="font-size:11px; color:#a0a0b8;">支付利息</div><div style="font-size:18px; font-weight:700; color:#f87171; margin-top:6px;">${loan.result.interest}万</div></div>
+        </div>
+      </div>` : ''}
+  `;
+}
+function runLoan() {
+  const P = parseFloat(loan.amount) * 10000;
+  let r = parseFloat(loan.rate);
+  const n = parseInt(loan.years) * 12;
+  if (!P || !r || !n || P<=0) { alert('请输入正确参数'); return; }
+  r = r / 100 / 12;
+  if (loan.type === 'equal_payment') {
+    const m = r===0 ? P/n : (P*r*Math.pow(1+r,n)) / (Math.pow(1+r,n)-1);
+    const total = m*n, interest = total-P;
+    loan.result = { type:'等额本息', monthly:m.toFixed(2), total:(total/10000).toFixed(2), principal:(P/10000).toFixed(2), interest:(interest/10000).toFixed(2), mode:1 };
+  } else {
+    const mp = P/n, fm = mp + P*r, lm = mp + mp*r;
+    const interest = P*r*(n+1)/2, total = P + interest;
+    loan.result = { type:'等额本金', fm:fm.toFixed(2), lm:lm.toFixed(2), total:(total/10000).toFixed(2), principal:(P/10000).toFixed(2), interest:(interest/10000).toFixed(2), mode:2 };
+  }
+  rerenderPhone2();
+}
+
+// Tip
+const tip = { amount:'', percent:15, people:2, result:null };
+function tipHTML() {
+  return `
+    ${headerHTML(TOOLS.find(t=>t.id==='tip'))}
+    <div class="input-card">
+      <div class="input-row"><div class="input-label">账单金额</div><input type="number" placeholder="0.00" value="${tip.amount}" oninput="tip.amount=this.value;calcTip();rerenderPhone2();" /><div class="input-unit">¥</div></div>
+      <div class="input-row">
+        <div class="input-label">小费比例</div>
+        <input type="range" min="0" max="30" step="1" value="${tip.percent}" oninput="tip.percent=+this.value;calcTip();rerenderPhone2();" style="flex:1; accent-color:#7c3aed; margin: 0 8px;" />
+        <div class="input-unit" style="color:#a78bfa; font-weight:700;">${tip.percent}%</div>
+      </div>
+      <div class="input-row"><div class="input-label">AA 人数</div><input type="number" placeholder="2" value="${tip.people}" oninput="tip.people=+this.value;calcTip();rerenderPhone2();" /><div class="input-unit">人</div></div>
+    </div>
+    ${tip.result ? `
+      <div class="result-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0;"><span style="color:#a0a0b8;">小费金额</span><span style="color:#fbbf24; font-weight:600;">¥${tip.result.tip}</span></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0;"><span style="color:#a0a0b8;">总金额</span><span style="color:#fff; font-size:17px; font-weight:700;">¥${tip.result.total}</span></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0;"><span style="color:#a0a0b8;">人均小费</span><span style="color:#a0a0b8;">¥${tip.result.eachTip}</span></div>
+        <div style="height:1px; background:rgba(255,255,255,0.05); margin:10px 0;"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0;"><span style="font-size:14px; font-weight:600; color:#fff;">人均应付</span><span style="color:#a78bfa; font-size:24px; font-weight:800;">¥${tip.result.each}</span></div>
+      </div>` : ''}
+  `;
+}
+function calcTip() {
+  const amt = parseFloat(tip.amount);
+  const n = Math.max(1, parseInt(tip.people) || 1);
+  if (!amt || amt <= 0) { tip.result = null; return; }
+  const t = amt * (+tip.percent) / 100;
+  const total = amt + t;
+  tip.result = { tip: t.toFixed(2), total: total.toFixed(2), each: (total/n).toFixed(2), eachTip: (t/n).toFixed(2) };
+}
+
+// Age
+const age = { birthday:'', result:null };
+function ageHTML() {
+  return `
+    ${headerHTML(TOOLS.find(t=>t.id==='age'))}
+    <div class="input-card">
+      <div class="input-row">
+        <div class="input-label" style="flex:1;">出生日期</div>
+        <input type="date" value="${age.birthday}" onchange="age.birthday=this.value;runAge();rerenderPhone2();" style="background:transparent; border:none; color:#a78bfa; font-weight:600; font-size:14px;" />
+      </div>
+    </div>
+    ${age.result ? `
+      <div class="result-card">
+        <div style="text-align:center;">
+          <div style="font-size:42px; font-weight:800; color:#a78bfa;">${age.result.yrs}<span style="font-size:16px; margin-left:6px; color:#a0a0b8; font-weight:400;">岁</span></div>
+          <div style="font-size:12px; color:#a0a0b8; margin-top:6px;">${age.result.mos}个月 ${age.result.dys}天</div>
+        </div>
+        <div style="height:1px; background:linear-gradient(90deg,transparent,rgba(124,58,237,0.3),transparent); margin:18px 0;"></div>
+        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
+          <div style="background:rgba(255,255,255,0.03); padding:14px; border-radius:12px; text-align:center;"><div style="font-size:11px; color:#a0a0b8;">已经历</div><div style="font-size:17px; color:#fff; font-weight:700; margin-top:4px;">${age.result.weeks}<span style="font-size:11px; margin-left:4px;">周</span></div></div>
+          <div style="background:rgba(255,255,255,0.03); padding:14px; border-radius:12px; text-align:center;"><div style="font-size:11px; color:#a0a0b8;">已经历</div><div style="font-size:17px; color:#fff; font-weight:700; margin-top:4px;">${age.result.totalDays}<span style="font-size:11px; margin-left:4px;">天</span></div></div>
+          <div style="background:rgba(255,255,255,0.03); padding:14px; border-radius:12px; text-align:center;"><div style="font-size:11px; color:#a0a0b8;">生肖</div><div style="font-size:18px; color:#fbbf24; font-weight:700; margin-top:4px;">${age.result.zodiac}</div></div>
+          <div style="background:rgba(255,255,255,0.03); padding:14px; border-radius:12px; text-align:center;"><div style="font-size:11px; color:#a0a0b8;">星座</div><div style="font-size:18px; color:#34d399; font-weight:700; margin-top:4px;">${age.result.star}座</div></div>
+        </div>
+        <div style="height:1px; background:linear-gradient(90deg,transparent,rgba(124,58,237,0.3),transparent); margin:18px 0;"></div>
+        <div style="text-align:center; font-size:13px;">🎂 距离下次生日还有 <b style="color:#a78bfa;">${age.result.toNext}</b> 天</div>
+      </div>` : ''}
+  `;
+}
+function runAge() {
+  const d = age.birthday; if (!d) return;
+  const b = new Date(d + 'T00:00:00');
+  const now = new Date();
+  let yrs = now.getFullYear() - b.getFullYear();
+  let mos = now.getMonth() - b.getMonth();
+  let dys = now.getDate() - b.getDate();
+  if (dys < 0) { mos--; dys += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+  if (mos < 0) { yrs--; mos += 12; }
+  const totalDays = Math.floor((now - b) / 86400000);
+  const weeks = Math.floor(totalDays / 7);
+  const next = new Date(b); next.setFullYear(now.getFullYear());
+  if (next < now) next.setFullYear(now.getFullYear() + 1);
+  const toNext = Math.ceil((next - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+  const zodiacs = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
+  const zodiac = zodiacs[(b.getFullYear() - 4) % 12];
+  const stars = ['摩羯','水瓶','双鱼','白羊','金牛','双子','巨蟹','狮子','处女','天秤','天蝎','射手'];
+  const cuts = [20,19,21,20,21,22,23,23,23,24,23,22];
+  let si = b.getMonth(); if (b.getDate() < cuts[si]) si = (si+11)%12;
+  age.result = { yrs, mos, dys, totalDays, weeks, toNext, zodiac, star: stars[si] };
+}
+
+// Notes
+let notes = [
+  { id:1, c:'下班买牛奶和面包', t:'刚刚' },
+  { id:2, c:'周三下午 3 点产品评审会', t:'今天 09:12' },
+  { id:3, c:'看书 20 页 + 跑步 5 公里', t:'昨天' }
+];
+function notesHTML() {
+  return `
+    ${headerHTML(TOOLS.find(t=>t.id==='notes'))}
+    <div style="padding:16px; background:linear-gradient(145deg,#1a1a2e,#16162a); border-radius:16px; border:1px solid rgba(124,58,237,0.12); margin-bottom:14px;">
+      <textarea id="note-input" placeholder="记录想法、灵感、待办..." style="width:100%; min-height:70px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; color:#fff; font-size:13px; outline:none; resize:none;"></textarea>
+      <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+        <button class="btn-primary" onclick="addNotePreview()">添加备忘 ✍️</button>
+      </div>
+    </div>
+    <div style="font-size:12px; color:#a0a0b8; margin-bottom:10px;">已记录 ${notes.length} 条</div>
+    ${notes.map(n => `
+      <div style="padding:16px; background:linear-gradient(145deg,#1a1a2e,#16162a); border-radius:14px; border-left:4px solid #7c3aed; margin-bottom:10px;">
+        <div style="color:#fff; font-size:13px; line-height:1.6;">${n.c}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+          <span style="font-size:10px; color:#6b6b80;">📌 ${n.t}</span>
+          <span style="font-size:11px; color:#f87171; padding:4px 10px; background:rgba(248,113,113,0.1); border-radius:9999px; cursor:pointer;" onclick="deleteNotePreview(${n.id})">删除</span>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+function addNotePreview() {
+  const v = document.getElementById('note-input').value.trim();
+  if (!v) return;
+  notes.unshift({ id: Date.now(), c: v, t:'刚刚' });
+  rerenderPhone2();
+}
+function deleteNotePreview(id) { notes = notes.filter(n => n.id !== id); rerenderPhone2(); }
+
+// Countdown
+function countdownHTML() {
+  const days = [
+    { name:'元旦', date:'2027-01-01', icon:'🎊' },
+    { name:'情人节', date:'2027-02-14', icon:'💝' },
+    { name:'劳动节', date:'2027-05-01', icon:'🎉' },
+    { name:'生日', date:'2027-06-15', icon:'🎂' },
+    { name:'国庆节', date:'2026-10-01', icon:'🇨🇳' },
+    { name:'圣诞节', date:'2026-12-25', icon:'🎄' }
+  ];
+  const today = new Date(); const t0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const calc = days.map(d => {
+    const target = new Date(d.date + 'T00:00:00');
+    const diff = Math.round((target - t0) / 86400000);
+    let cls = 'text-accent', status = '还有';
+    if (diff === 0) { cls = 'text-warning'; status = '就是今天！'; }
+    else if (diff < 0) { cls = 'text-muted'; status = '已过'; }
+    return { ...d, days: Math.abs(diff), cls, status };
+  }).sort((a,b) => (a.status==='已过'?1:0) - (b.status==='已过'?1:0) || a.days - b.days);
+
+  return `
+    ${headerHTML(TOOLS.find(t=>t.id==='countdown'))}
+    ${calc.map(d => `
+      <div style="display:flex; align-items:center; gap:14px; padding:16px; background:linear-gradient(145deg,#1a1a2e,#16162a); border-radius:16px; border:1px solid rgba(124,58,237,0.1); margin-bottom:10px;">
+        <div style="width:52px; height:52px; background:rgba(255,255,255,0.05); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:30px;">${d.icon}</div>
+        <div style="flex:1;">
+          <div style="color:#fff; font-weight:600; font-size:14px;">${d.name}</div>
+          <div style="color:#8a8a9a; font-size:11px; margin-top:3px;">📅 ${d.date}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="${d.cls}" style="font-size:22px; font-weight:800;">${d.days}<span style="font-size:11px; margin-left:4px; font-weight:400;">天</span></div>
+          <div style="font-size:11px; color:#8a8a9a; margin-top:2px;">${d.status}</div>
+        </div>
+      </div>
+    `).join('')}
+    <div style="text-align:center; font-size:11px; color:#6b6b80; opacity:0.7; margin-top:10px;">* 内置 6 个常见节日 · 生产版本可自定义新增</div>
+  `;
+}
+
+// Flashlight
+let flashOn = false;
+function flashlightHTML() {
+  return `
+    ${headerHTML(TOOLS.find(t=>t.id==='flashlight'))}
+    <div style="padding:60px 0 40px; display:flex; flex-direction:column; align-items:center;">
+      <div onclick="flashToggle()" style="width:200px; height:200px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+        background:${flashOn ? 'radial-gradient(circle,#fff 0%, #fff5c2 40%, #fde047 80%)' : 'linear-gradient(145deg, #2a2a45, #16162a)'};
+        border:${flashOn ? '5px solid #fde047' : '5px solid rgba(255,255,255,0.05)'};
+        box-shadow:${flashOn ? '0 0 60px rgba(253,224,71,0.7), 0 0 140px rgba(253,224,71,0.4)' : '0 12px 40px rgba(0,0,0,0.4), inset 0 0 30px rgba(0,0,0,0.3)'};
+        cursor:pointer; transition:all 0.3s; font-size:90px;">
+        ${flashOn ? '💡' : '🔦'}
+      </div>
+      <div style="margin-top:30px; font-size:16px; font-weight:600; color:#fff;">${flashOn ? '屏幕亮光已开启' : '点击按钮开启亮光'}</div>
+      <div style="margin-top:10px; font-size:12px; color:#8a8a9a; text-align:center; line-height:1.6;">利用屏幕白色实现的手电筒功能<br/>可将手机屏幕朝上当作小夜灯使用</div>
+      <div style="margin-top:30px; width:260px;">
+        <div style="text-align:center; font-size:11px; color:#8a8a9a;">亮度进度</div>
+        <div style="height:8px; margin-top:10px; background:rgba(255,255,255,0.06); border-radius:9999px; overflow:hidden;">
+          <div style="height:100%; width:${flashOn?'100%':'0%'}; background:linear-gradient(90deg,#fbbf24,#fde047); transition:width 0.3s;"></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function flashToggle() { flashOn = !flashOn; rerenderPhone2(); }
+
+// Timestamp (auto refresh)
+let tsNow = 0, tsFull = '';
+function timestampHTML() {
+  const d = new Date(); tsNow = Math.floor(d.getTime()/1000);
+  const pad = n => String(n).padStart(2,'0');
+  tsFull = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  return `
+    ${headerHTML(TOOLS.find(t=>t.id==='timestamp'))}
+    <div class="result-card">
+      <div style="font-size:11px; color:#a0a0b8;">当前 Unix 时间戳（秒）</div>
+      <div id="ts-sec" style="font-size:24px; font-weight:800; color:#a78bfa; margin-top:8px;">${tsNow}</div>
+      <div style="height:1px; background:linear-gradient(90deg,transparent,rgba(124,58,237,0.3),transparent); margin:18px 0;"></div>
+      <div style="font-size:11px; color:#a0a0b8;">当前日期时间</div>
+      <div id="ts-full" style="font-size:16px; color:#fff; font-weight:600; margin-top:8px;">${tsFull}</div>
+      <div style="font-size:10px; color:#6b6b80; opacity:0.7; margin-top:10px;">* 每秒自动刷新</div>
+    </div>
+  `;
+}
+
+// Generic placeholder
+function placeholderHTML(t) {
+  return `
+    ${headerHTML(t)}
+    <div class="result-card" style="text-align:center;">
+      <div style="font-size:60px; margin-bottom:14px;">${t.icon}</div>
+      <div style="font-size:17px; font-weight:800; color:#fff;">${t.name}</div>
+      <div style="font-size:12px; color:#a0a0b8; margin-top:8px;">${t.desc}</div>
+      <div style="height:1px; background:linear-gradient(90deg,transparent,rgba(124,58,237,0.3),transparent); margin:24px 0;"></div>
+      <div style="font-size:11px; color:#6b6b80; line-height:1.8;">🚧 该工具预览界面可在左侧手机直接点击<br/>当前框架已就绪，可按需对接具体业务</div>
+      <div style="margin-top:20px; display:flex; flex-wrap:wrap; justify-content:center; gap:8px;">
+        ${['✅ 页面框架','✅ 路由跳转','✅ 收藏分享','✅ 历史记录'].map(x => `<div style="padding:4px 12px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.25); color:#34d399; font-size:11px; border-radius:9999px;">${x}</div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================
+   DETAIL ROUTER (Phone 1 overlay + Phone 2 main view)
+========================================================= */
+function renderTool(id, vipBlock=false) {
+  const t = TOOLS.find(x => x.id === id) || TOOLS[0];
+  if (vipBlock) return headerHTML(t) + vipBlockHTML(t);
+  if (id === 'calculator') return headerHTML(t) + calcHTML();
+  if (id === 'bmi') return bmiHTML();
+  if (id === 'random') return randHTML();
+  if (id === 'loan') return loanHTML(false);
+  if (id === 'tip') return tipHTML();
+  if (id === 'age') return ageHTML();
+  if (id === 'notes') return notesHTML();
+  if (id === 'countdown') return countdownHTML();
+  if (id === 'flashlight') return flashlightHTML();
+  if (id === 'timestamp') return timestampHTML();
+  // VIP tools show block
+  if (t.isVip) return headerHTML(t) + vipBlockHTML(t);
+  return placeholderHTML(t);
+}
+
+/* ---- Overlay on phone 1 ---- */
+function openTool(id) {
+  // Decide: VIP tool -> show block
+  const t = TOOLS.find(x => x.id === id);
+  const vipBlock = t && t.isVip;
+  const ov = document.getElementById('detail-overlay');
+  document.getElementById('detail-title').textContent = t ? t.name : '工具详情';
+  document.getElementById('detail-content').innerHTML = renderTool(id, vipBlock);
+  ov.classList.add('show');
+}
+function closeDetail() {
+  document.getElementById('detail-overlay').classList.remove('show');
+}
+
+/* ---- Phone 2 standalone ---- */
+let phone2Open = 'calculator';
+let phone2Vip = false;
+function openToolInPhone2(id, forceVip=false) {
+  phone2Open = id;
+  phone2Vip = !!forceVip;
+  rerenderPhone2();
+}
+function rerenderPhone2() {
+  const el = document.getElementById('phone2-content');
+  const html = renderTool(phone2Open, phone2Vip);
+  el.innerHTML = html;
+  el.scrollTop = 0;
+}
+
+/* =========================================================
+   INIT
+========================================================= */
+window.addEventListener('DOMContentLoaded', () => {
+  renderQuickGrid();
+  renderHotList();
+  renderCatTabs();
+  renderToolGrid();
+  renderFavList();
+  openToolInPhone2('calculator');
+
+  // Refresh timestamp every second if open
+  setInterval(() => {
+    if (phone2Open === 'timestamp') rerenderPhone2();
+    const overlayShow = document.getElementById('detail-overlay').classList.contains('show');
+    if (overlayShow) {
+      const t = document.getElementById('ts-sec');
+      if (t) {
+        const d = new Date();
+        const pad = n => String(n).padStart(2,'0');
+        t.textContent = Math.floor(d.getTime()/1000);
+        const f = document.getElementById('ts-full');
+        if (f) f.textContent = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      }
+    }
+  }, 1000);
+});
+</script>
+</body>
+</html>
