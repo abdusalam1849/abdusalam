@@ -1,0 +1,5 @@
+# 依赖
+# rich: CLI 彩色表格输出(可选,未安装时回退纯文本)
+# requests: live 真实抓取所需(mock 模式无需)
+rich>=13.0.0
+requests>=2.28.0

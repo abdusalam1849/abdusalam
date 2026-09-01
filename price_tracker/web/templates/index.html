@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>电商商品价格自动化采集与对比工具</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><span class="logo">📊</span> 电商商品价格自动化采集与对比工具</h1>
+      <div class="sub">京东 · 淘宝 · 拼多多 多平台批量采集 → 清洗去重 → 价格对比 → 趋势可视化 → 性价比推荐</div>
+    </header>
+
+    <div class="banner" id="bannerText">
+      初始化已加载 <b>示例数据</b>。在下方输入关键词后点击「现场采集」,服务器将<b>实时运行采集脚本</b>并返回对比结果。
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="keyword" placeholder="输入商品关键词,例如:无线蓝牙耳机、手机、键盘..." value="">
+      <button id="runBtn">▶ 现场采集</button>
+      <div class="opts">
+        <label><input type="checkbox" name="platform" value="jd" checked> 京东</label>
+        <label><input type="checkbox" name="platform" value="taobao" checked> 淘宝</label>
+        <label><input type="checkbox" name="platform" value="pdd" checked> 拼多多</label>
+        <label>每平台 <select id="limit">
+          <option>8</option>
+          <option selected>15</option>
+          <option>20</option>
+          <option>30</option>
+        </select> 条</label>
+        <label>模式
+          <select id="mode">
+            <option value="mock" selected>模拟(mock)</option>
+            <option value="live">真实抓取(需配置cookie)</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div id="errorBox"></div>
+
+    <div class="loading" id="loading" style="display:none">
+      <div class="spinner"></div>
+      <span>正在现场运行采集脚本,清洗与对比中...</span>
+    </div>
+
+    <div id="results" style="display:none">
+      <div style="color:var(--muted);font-size:13px;margin-bottom:14px">
+        关键词 <b id="keywordLabel" style="color:var(--text)"></b>
+        · 模式 <b id="modeLabel"></b>
+        · 原始 <b id="rawCount"></b> 条 → 去重后 <b id="cleanedCount"></b> 条
+      </div>
+
+      <div class="cards" id="cards"></div>
+
+      <div class="section">
+        <h2>💰 价格区间与价差 <span class="pill" id="spread"></span></h2>
+        <div id="spread" style="font-size:14px"></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="section">
+          <h2>🛒 各平台横向对比</h2>
+          <div id="platformTable"></div>
+        </div>
+        <div class="section">
+          <h2>📊 平台均价对比图</h2>
+          <div id="platformChart" class="chart"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="section">
+          <h2>📈 商品价格趋势图 <span class="pill">实线=单品 虚线=平台均价</span></h2>
+          <div id="trendChart" class="chart tall"></div>
+        </div>
+        <div class="section">
+          <h2>🔵 价格×销量分布 <span class="pill">气泡大小=销量</span></h2>
+          <div id="scatterChart" class="chart tall"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>🏷️ 平台综合性价比排名</h2>
+        <div id="ranking"></div>
+      </div>
+
+      <div class="section">
+        <h2>⭐ 性价比推荐 TOP5</h2>
+        <div id="recommend"></div>
+      </div>
+
+      <div class="section">
+        <h2>📋 商品明细(按价格升序)</h2>
+        <div id="productTable" style="overflow-x:auto"></div>
+      </div>
+    </div>
+
+    <footer>
+      电商商品价格自动化采集与对比工具 · 数据来源:京东/淘宝/拼多多 ·
+      <a href="https://github.com" target="_blank" rel="noopener">源码</a> ·
+      mock 模式数据为符合平台分布特征的模拟数据,live 模式需配置平台 cookie 后启用真实抓取
+    </footer>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
