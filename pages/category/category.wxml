@@ -1,4 +1,4 @@
-<view class="container cat-page">
+<view class="container cat-page {{theme === 'light' ? 'theme-light' : ''}}">
   <!-- 搜索栏 -->
   <view class="search-wrap">
     <view class="search-bar">
@@ -36,7 +36,7 @@
               <view class="vip-badge" wx:if="{{item.isVip}}">VIP</view>
             </view>
             <view class="text-xs text-secondary mt-1">{{item.desc}}</view>
-            <view class="text-xs text-muted mt-1">{{item.users}} 使用</view>
+            <view class="text-xs text-muted mt-1">{{item.usageText}}</view>
           </view>
         </view>
       </block>
@@ -88,7 +88,7 @@
               <text>{{item.icon}}</text>
             </view>
             <view class="grid-tool-name text-sm text-primary mt-2">{{item.name}}</view>
-            <view class="grid-tool-desc text-xs text-muted mt-1">{{item.users}}</view>
+            <view class="grid-tool-desc text-xs text-muted mt-1">{{item.usageText}}</view>
             <view class="vip-tag" wx:if="{{item.isVip}}">VIP</view>
           </view>
         </block>

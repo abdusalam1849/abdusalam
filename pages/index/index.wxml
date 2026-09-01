@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container {{theme === 'light' ? 'theme-light' : ''}}">
   <!-- 顶部搜索栏 -->
   <view class="header">
     <view class="header-top">
@@ -80,7 +80,7 @@
       <view class="stats-divider"></view>
       <view class="stats-item">
         <view class="stats-num text-2xl font-bold text-warning">{{stats.userCount}}</view>
-        <view class="stats-label text-xs text-secondary mt-1">累计用户</view>
+        <view class="stats-label text-xs text-secondary mt-1">实时用户</view>
       </view>
     </view>
   </view>
@@ -155,7 +155,7 @@
               <view class="vip-badge" wx:if="{{item.isVip}}">VIP</view>
             </view>
             <view class="text-xs text-secondary mt-1">{{item.desc}}</view>
-            <view class="text-xs text-muted mt-1">👥 {{item.users}} 人在使用</view>
+            <view class="text-xs text-muted mt-1">👥 {{item.usageText}}</view>
           </view>
           <view class="arrow-btn">›</view>
         </view>

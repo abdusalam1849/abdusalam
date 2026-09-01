@@ -1,5 +1,5 @@
 {
-  "description": "Abdusalam 工具箱 - 暗色风格微信小程序",
+  "description": "Abdusalam 工具箱 - 黑白双主题微信小程序（正式版）",
   "packOptions": {
     "ignore": [],
     "include": []
@@ -37,6 +37,7 @@
   "libVersion": "2.32.3",
   "appid": "touristappid",
   "projectname": "abdusalam-toolbox",
+  "cloudfunctionRoot": "cloudfunctions/",
   "condition": {},
   "editorSetting": {
     "tabIndent": "insertSpaces",

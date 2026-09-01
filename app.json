@@ -8,15 +8,15 @@
   ],
   "window": {
     "backgroundTextStyle": "dark",
-    "navigationBarBackgroundColor": "#0f0f1a",
+    "navigationBarBackgroundColor": "#000000",
     "navigationBarTitleText": "Abdusalam 工具箱",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#0f0f1a"
+    "backgroundColor": "#000000"
   },
   "tabBar": {
-    "color": "#8a8a9a",
+    "color": "#6e6e6e",
     "selectedColor": "#7c3aed",
-    "backgroundColor": "#141425",
+    "backgroundColor": "#0a0a0a",
     "borderStyle": "black",
     "list": [
       {
@@ -39,5 +39,6 @@
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
-  "lazyCodeLoading": "requiredComponents"
+  "lazyCodeLoading": "requiredComponents",
+  "cloud": true
 }

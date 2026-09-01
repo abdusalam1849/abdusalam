@@ -3,15 +3,17 @@ const { getToolById, TOOLS } = require('../../utils/tools-data.js')
 
 Page({
   data: {
+    theme: 'dark',
     favorites: [],
     isVip: false,
+    usableCount: 0,
     vipPlans: [
       { id: 'month', name: '月度会员', price: '12', original: '18', unit: '/月', tag: '灵活', highlight: false },
       { id: 'year', name: '年度会员', price: '98', original: '216', unit: '/年', tag: '超值', highlight: true },
       { id: 'forever', name: '永久会员', price: '298', original: '598', unit: '元', tag: '划算', highlight: false }
     ],
     vipFeatures: [
-      { icon: '🔓', title: '解锁全部VIP工具', desc: '10+ 高级工具免费使用' },
+      { icon: '🔓', title: '解锁全部VIP工具', desc: '高级工具免费使用' },
       { icon: '⚡', title: '优先体验新功能', desc: '内测新工具抢先体验' },
       { icon: '☁️', title: '云端数据同步', desc: '多设备数据无缝同步' },
       { icon: '🚫', title: '纯净无广告', desc: '去除所有广告打扰' },
@@ -21,16 +23,30 @@ Page({
     showVipModal: false
   },
 
+  onLoad() {
+    this._themeFn = (theme) => { this.setData({ theme }) }
+    app.onThemeChange(this._themeFn)
+  },
+
+  onUnload() {
+    app.offThemeChange(this._themeFn)
+  },
+
   onShow() {
     this.loadData()
+    this.setData({ theme: app.globalData.theme })
   },
 
   loadData() {
     const favorites = wx.getStorageSync('favorites') || []
     const isVip = wx.getStorageSync('isVip') || false
+    // 真实可用工具数：VIP 全部可用，非VIP = 非VIP工具数
+    const vipToolCount = TOOLS.filter(t => t.isVip).length
+    const usableCount = isVip ? TOOLS.length : (TOOLS.length - vipToolCount)
     this.setData({
       favorites,
-      isVip
+      isVip,
+      usableCount
     })
   },
 
@@ -85,6 +101,7 @@ Page({
               isVip: true,
               showVipModal: false
             })
+            this.loadData()
             wx.showToast({ title: '开通成功！', icon: 'success' })
           }, 1200)
         }
@@ -101,6 +118,7 @@ Page({
         if (res.confirm) {
           wx.setStorageSync('isVip', true)
           this.setData({ isVip: true })
+          this.loadData()
           wx.showToast({ title: '已恢复会员', icon: 'success' })
         }
       }

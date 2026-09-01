@@ -1,4 +1,4 @@
-<view class="container mine-page">
+<view class="container mine-page {{theme === 'light' ? 'theme-light' : ''}}">
   <!-- 用户信息区域 -->
   <view class="profile-section">
     <view class="profile-bg"></view>
@@ -35,7 +35,7 @@
         </block>
       </view>
 
-      <!-- 数据概览 -->
+      <!-- 数据概览（真实数据） -->
       <view class="overview">
         <view class="overview-item flex flex-col items-center" bindtap="toggleHistory">
           <view class="overview-num text-2xl font-bold text-accent">{{historyCount}}</view>
@@ -47,9 +47,14 @@
           <view class="overview-label text-xs text-secondary mt-1">收藏工具</view>
         </view>
         <view class="overview-divider"></view>
-        <view class="overview-item flex flex-col items-center" open-type="share">
-          <view class="overview-num text-2xl font-bold text-success">20+</view>
+        <view class="overview-item flex flex-col items-center">
+          <view class="overview-num text-2xl font-bold text-success">{{toolCount}}</view>
           <view class="overview-label text-xs text-secondary mt-1">工具总数</view>
+        </view>
+        <view class="overview-divider"></view>
+        <view class="overview-item flex flex-col items-center">
+          <view class="overview-num text-2xl font-bold text-danger">{{totalUsage}}</view>
+          <view class="overview-label text-xs text-secondary mt-1">累计使用</view>
         </view>
       </view>
     </view>
@@ -70,9 +75,7 @@
             </view>
             <view class="ml-3">
               <view class="text-sm text-primary">{{item.name}}</view>
-              <view class="text-xs text-muted mt-1">
-                {{item.time}}
-              </view>
+              <view class="text-xs text-muted mt-1">{{item.timeStr}}</view>
             </view>
           </view>
           <view class="text-xs text-danger px-3 py-1 rounded-full" catchtap="clearHistoryItem" data-id="{{item.id}}">删除</view>
@@ -108,7 +111,7 @@
   <!-- 底部版权 -->
   <view class="footer text-xs text-muted text-center mt-5 mb-6">
     <view>Made with ❤️ by Abdusalam Studio</view>
-    <view class="mt-1 opacity-60">v1.0.0 · © 2024 All Rights Reserved</view>
+    <view class="mt-1 opacity-60">v2.0.0 · © 2024 All Rights Reserved</view>
   </view>
 
   <view style="height: 120rpx;"></view>

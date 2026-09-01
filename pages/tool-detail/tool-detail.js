@@ -58,6 +58,7 @@ Page({
     isFav: false,
     isVip: false,
     showVipBlock: false,
+    theme: 'dark',
     // 计算器
     calcDisplay: '0',
     calcHistory: '',
@@ -179,8 +180,12 @@ Page({
   },
 
   onLoad(options) {
+    // 主题监听
+    this._themeFn = (theme) => { this.setData({ theme }) }
+    app.onThemeChange(this._themeFn)
+
     const id = options.id
-    const tool = getToolById(id)
+    const tool = getToolById(id, app.getAllUsageCounts())
     if (!tool) {
       wx.showToast({ title: '工具不存在', icon: 'none' })
       setTimeout(() => wx.navigateBack(), 1500)
@@ -196,6 +201,7 @@ Page({
 
     this.setData({
       tool, category,
+      theme: app.globalData.theme,
       isFav: app.isFavorite(tool.id),
       isVip, showVipBlock
     })
@@ -220,6 +226,7 @@ Page({
   },
 
   onUnload() {
+    app.offThemeChange(this._themeFn)
     if (this._tsTimer) clearInterval(this._tsTimer)
     if (this._pomoTimer) clearInterval(this._pomoTimer)
   },

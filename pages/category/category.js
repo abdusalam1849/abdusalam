@@ -1,7 +1,9 @@
-const { CATEGORIES, getToolsByCategory, searchTools, TOOLS } = require('../../utils/tools-data.js')
+const app = getApp()
+const { CATEGORIES, getToolsByCategory, searchTools, enrichToolsWithUsage, TOOLS } = require('../../utils/tools-data.js')
 
 Page({
   data: {
+    theme: 'dark',
     activeCategory: 'all',
     searchKeyword: '',
     isSearching: false,
@@ -11,9 +13,33 @@ Page({
   },
 
   onLoad() {
+    // 主题监听
+    this._themeFn = (theme) => { this.setData({ theme }) }
+    app.onThemeChange(this._themeFn)
     this.setData({
+      theme: app.globalData.theme,
       categories: [{ id: 'all', name: '全部', icon: '🎯', desc: '查看所有工具', color: 'linear-gradient(135deg, #7c3aed, #5b21b6)' }, ...CATEGORIES],
-      tools: TOOLS
+      tools: enrichToolsWithUsage(TOOLS)
+    })
+  },
+
+  onUnload() {
+    app.offThemeChange(this._themeFn)
+  },
+
+  onShow() {
+    // 每次进入刷新真实使用次数
+    this.refreshUsage()
+    this.setData({ theme: app.globalData.theme })
+  },
+
+  refreshUsage() {
+    app.fetchCloudUsageCounts((ok, counts) => {
+      const merged = ok ? counts : app.getAllUsageCounts()
+      this.setData({
+        tools: getToolsByCategory(this.data.activeCategory, merged),
+        searchResults: this.data.searchKeyword ? searchTools(this.data.searchKeyword, merged) : []
+      })
     })
   },
 
@@ -28,7 +54,7 @@ Page({
 
   switchCategory(e) {
     const id = e.currentTarget.dataset.id
-    const tools = getToolsByCategory(id)
+    const tools = getToolsByCategory(id, app.getAllUsageCounts())
     this.setData({
       activeCategory: id,
       tools
@@ -47,7 +73,7 @@ Page({
   },
 
   doSearch(kw) {
-    const results = searchTools(kw)
+    const results = searchTools(kw, app.getAllUsageCounts())
     this.setData({ searchResults: results })
   },
 

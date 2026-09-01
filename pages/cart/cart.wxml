@@ -1,4 +1,4 @@
-<view class="container cart-page">
+<view class="container cart-page {{theme === 'light' ? 'theme-light' : ''}}">
   <!-- 顶部会员/收藏概览 -->
   <view class="top-header">
     <view class="vip-card {{isVip ? 'vip-active' : ''}}">
@@ -32,7 +32,7 @@
         <view class="fav-stat-label text-xs text-secondary mt-1">已收藏工具</view>
       </view>
       <view class="fav-stat-item">
-        <view class="fav-stat-num text-2xl font-bold text-warning">{{isVip ? 20 : 14}}</view>
+        <view class="fav-stat-num text-2xl font-bold text-warning">{{usableCount}}</view>
         <view class="fav-stat-label text-xs text-secondary mt-1">可使用工具</view>
       </view>
       <view class="fav-stat-item">
