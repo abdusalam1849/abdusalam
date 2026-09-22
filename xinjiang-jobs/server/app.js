@@ -4,6 +4,7 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const path = require('path');
 const config = require('./config');
 const scheduler = require('./services/scheduler');
 
@@ -16,7 +17,16 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('tiny'));
 
-app.get('/', (req, res) => res.json({ code: 0, msg: 'XJ-Jobs API online', ts: Date.now() }));
+// 预览页面（H5 模拟小程序）
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (req, res, next) => {
+  // 兼容：根路径返回 HTML 预览页
+  if (req.accepts('html')) return res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  next();
+});
+app.get('/api', (req, res) => res.json({ code: 0, msg: 'XJ-Jobs API online', ts: Date.now() }));
+
 app.use('/api/jobs', jobsRouter);
 app.use('/api/subscribe', subscribeRouter);
 app.use('/api/system', systemRouter);
