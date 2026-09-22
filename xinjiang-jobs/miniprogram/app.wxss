@@ -1,0 +1,35 @@
+/* miniprogram/app.wxss */
+page {
+  background: #f5f7fa;
+  color: #1a1a1a;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', Helvetica, Arial, sans-serif;
+}
+view, text { box-sizing: border-box; }
+.container { padding: 24rpx; }
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
+}
+.tag {
+  display: inline-block;
+  padding: 4rpx 14rpx;
+  margin: 4rpx 8rpx 0 0;
+  font-size: 22rpx;
+  color: #1e90ff;
+  background: #e6f1ff;
+  border-radius: 20rpx;
+}
+.salary { color: #ff5722; font-weight: 600; }
+.muted { color: #8a8f99; font-size: 24rpx; }
+.btn-primary {
+  background: #1e90ff;
+  color: #fff;
+  border-radius: 48rpx;
+  padding: 18rpx 0;
+  text-align: center;
+  font-size: 30rpx;
+}
+.btn-primary[disabled] { background: #a0cfff; }

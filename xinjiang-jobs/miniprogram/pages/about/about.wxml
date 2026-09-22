@@ -1,0 +1,30 @@
+<!-- miniprogram/pages/about/about.wxml -->
+<view class="page">
+  <view class="card">
+    <view class="title">新疆求职通</view>
+    <view class="muted">聚合新疆疆内招聘信息，每日实时更新</view>
+  </view>
+
+  <view class="card" wx:if="{{status}}">
+    <view class="section-title">数据状态</view>
+    <view class="line">在库岗位：{{status.jobsCount}} 条</view>
+    <view class="line">最近更新：{{lastText}}</view>
+    <view class="line" wx:if="{{status.lastLog}}">
+      上次抓取：{{status.lastLog.source}} / {{status.lastLog.status}} / 新增 {{status.lastLog.new_count}}
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">实时更新</view>
+    <view class="muted">本程序通过定时爬虫每日 08:00 / 12:00 / 18:00 拉取一次；
+    小程序首页下拉即可立即获取最新数据。</view>
+    <button class="btn-primary" bindtap="triggerCrawl">手动触发抓取</button>
+  </view>
+
+  <view class="card">
+    <view class="section-title">数据来源</view>
+    <view class="line muted">- 新疆人才网</view>
+    <view class="line muted">- Boss 直聘（接入开放接口后启用）</view>
+    <view class="line muted">- 演示数据（demo，部署后移除）</view>
+  </view>
+</view>

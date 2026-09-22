@@ -1,0 +1,38 @@
+<!-- miniprogram/pages/index/index.wxml -->
+<view class="page">
+  <view class="status-bar">
+    <text class="muted">{{lastUpdateText}}</text>
+    <text class="refresh-tip">下拉刷新获取最新岗位</text>
+  </view>
+
+  <view class="filter-bar">
+    <view class="filter-item" bindtap="tapFilter">城市</view>
+    <view class="filter-item" bindtap="tapFilter">类型</view>
+    <view class="filter-item" bindtap="tapFilter">薪资</view>
+  </view>
+
+  <view wx:if="{{list.length === 0 && !loading}}" class="empty">暂无岗位，下拉刷新试试</view>
+
+  <view class="job-card" wx:for="{{list}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+    <view class="job-header">
+      <text class="job-title">{{item.title}}</text>
+      <text class="salary">{{item.salary}}</text>
+    </view>
+    <view class="job-company">{{item.company}}</view>
+    <view class="job-meta">
+      <text class="muted">{{item.city}}{{item.district ? ' · ' + item.district : ''}}</text>
+      <text class="muted"> · {{item.experience}}</text>
+      <text class="muted"> · {{item.education}}</text>
+    </view>
+    <view class="tags">
+      <text wx:for="{{item.welfare}}" wx:for-item="t" wx:key="*this" class="tag">{{t}}</text>
+    </view>
+    <view class="job-footer">
+      <text class="muted">{{item.ago}}</text>
+      <text class="source-badge">{{item.source}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{noMore}}" class="footer">已加载全部 {{total}} 条</view>
+  <view wx:elif="{{loading}}" class="footer">加载中...</view>
+</view>

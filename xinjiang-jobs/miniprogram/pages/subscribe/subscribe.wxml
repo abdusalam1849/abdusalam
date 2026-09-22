@@ -1,0 +1,23 @@
+<!-- miniprogram/pages/subscribe/subscribe.wxml -->
+<view class="page">
+  <view class="card">
+    <view class="hint">
+      订阅后将按你设定的关键词和城市，每日推送一次匹配到的新疆疆内新岗位。
+    </view>
+
+    <view class="field">
+      <view class="label">关键词（逗号分隔）</view>
+      <input class="input" placeholder="如：会计,教师,前端" value="{{keywords}}" bindinput="onKeyInput"/>
+    </view>
+
+    <view class="field">
+      <view class="label">城市</view>
+      <input class="input" placeholder="如：乌鲁木齐" value="{{city}}" bindinput="onCityInput"/>
+    </view>
+
+    <button class="btn-primary" bindtap="submit" disabled="{{loading}}" loading="{{loading}}">
+      {{subscribed ? '更新订阅' : '立即订阅'}}
+    </button>
+    <view wx:if="{{subscribed}}" class="muted ok">已订阅，每日 08:00 自动推送匹配岗位</view>
+  </view>
+</view>

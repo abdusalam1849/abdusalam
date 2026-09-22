@@ -1,0 +1,31 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/detail/detail",
+    "pages/search/search",
+    "pages/subscribe/subscribe",
+    "pages/about/about"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#1e90ff",
+    "navigationBarTitleText": "新疆求职通",
+    "navigationBarTextStyle": "white",
+    "enablePullDownRefresh": true,
+    "backgroundColor": "#f5f7fa"
+  },
+  "tabBar": {
+    "color": "#7a7e83",
+    "selectedColor": "#1e90ff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {"pagePath": "pages/index/index", "text": "岗位"},
+      {"pagePath": "pages/search/search", "text": "搜索"},
+      {"pagePath": "pages/subscribe/subscribe", "text": "订阅"},
+      {"pagePath": "pages/about/about", "text": "关于"}
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

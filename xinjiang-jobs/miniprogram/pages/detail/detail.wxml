@@ -1,0 +1,43 @@
+<!-- miniprogram/pages/detail/detail.wxml -->
+<view wx:if="{{job}}" class="page">
+  <view class="card">
+    <view class="title-row">
+      <text class="job-title">{{job.title}}</text>
+      <text class="salary">{{job.salary}}</text>
+    </view>
+    <view class="company">{{job.company}}</view>
+    <view class="meta">
+      <text class="muted">{{job.city}}{{job.district ? ' · ' + job.district : ''}}</text>
+      <text class="muted"> · {{job.experience}}</text>
+      <text class="muted"> · {{job.education}}</text>
+      <text class="muted"> · {{job.job_type}}</text>
+    </view>
+    <view class="tags">
+      <text wx:for="{{job.welfare}}" wx:for-item="t" wx:key="*this" class="tag">{{t}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">职位描述</view>
+    <view class="desc">{{job.description || '—'}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">联系方式</view>
+    <view wx:if="{{job.contact}}" class="line">联系人：{{job.contact}}</view>
+    <view wx:if="{{job.phone}}" class="line">电话：{{job.phone}}</view>
+    <view wx:if="{{job.email}}" class="line">邮箱：{{job.email}}</view>
+    <view wx:if="{{job.address}}" class="line">地址：{{job.address}}</view>
+    <view wx:if="{{!job.contact && !job.phone && !job.email && !job.address}}" class="muted">未提供联系方式</view>
+  </view>
+
+  <view class="footer-meta">
+    <text class="muted">{{job.publishText}}</text>
+    <text class="source-badge" bindtap="openSource">来源：{{job.source}}</text>
+  </view>
+
+  <view class="actions">
+    <button class="btn-primary" wx:if="{{job.phone}}" bindtap="copyPhone">复制联系电话</button>
+    <button class="btn-primary" bindtap="openSource">复制原文链接</button>
+  </view>
+</view>

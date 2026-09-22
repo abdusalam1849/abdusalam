@@ -1,0 +1,46 @@
+<!-- miniprogram/pages/search/search.wxml -->
+<view class="page">
+  <view class="search-box">
+    <input class="input" placeholder="职位/公司/关键词" value="{{keyword}}" bindinput="onInput" confirm-type="search" bindconfirm="search"/>
+    <button class="btn-search" bindtap="search">搜索</button>
+  </view>
+
+  <view class="filters">
+    <view class="filter-pill {{city ? 'active' : ''}}" bindtap="toggleCity">
+      {{city || '城市'}}<text wx:if="{{city}}" class="x" catchtap="clearCity">×</text>
+    </view>
+    <view class="filter-pill {{job_type ? 'active' : ''}}" bindtap="toggleType">
+      {{job_type || '类型'}}<text wx:if="{{job_type}}" class="x" catchtap="clearType">×</text>
+    </view>
+  </view>
+
+  <view wx:if="{{showCity}}" class="panel">
+    <view class="panel-item" wx:for="{{cityList}}" wx:key="city" bindtap="pickCity" data-city="{{item.city}}">
+      {{item.city}} <text class="muted">（{{item.c}}）</text>
+    </view>
+    <view wx:if="{{cityList.length === 0}}" class="muted panel-empty">暂无数据</view>
+  </view>
+
+  <view wx:if="{{showType}}" class="panel">
+    <view class="panel-item" wx:for="{{jobTypes}}" wx:key="*this" bindtap="pickType" data-t="{{item}}">{{item}}</view>
+  </view>
+
+  <view class="result-meta">
+    <text class="muted">共 {{total}} 条结果</text>
+  </view>
+
+  <view wx:if="{{list.length === 0 && !loading}}" class="empty">无匹配岗位</view>
+  <view class="job-card" wx:for="{{list}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+    <view class="job-header">
+      <text class="job-title">{{item.title}}</text>
+      <text class="salary">{{item.salary}}</text>
+    </view>
+    <view class="job-company">{{item.company}}</view>
+    <view class="job-meta">
+      <text class="muted">{{item.city}}{{item.district ? ' · ' + item.district : ''}}</text>
+      <text class="muted"> · {{item.experience}}</text>
+      <text class="muted"> · {{item.education}}</text>
+    </view>
+    <view class="muted footer-line">{{item.ago}}</view>
+  </view>
+</view>
