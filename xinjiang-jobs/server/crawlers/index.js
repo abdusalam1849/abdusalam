@@ -1,16 +1,27 @@
 // server/crawlers/index.js
-// 爬虫注册中心：在此添加新源
+// 爬虫注册中心：按 config.crawlers 开关动态注册真实数据源
 
-const XjrcCrawler = require('./xjrc');
-const ZhipinCrawler = require('./zhipin');
+const config = require('../config');
+
 const DemoCrawler = require('./demo');
+const XjrcCrawler = require('./xjrc');
+const XjggzpCrawler = require('./xjggzp');
+const ZhaopinCrawler = require('./zhaopin');
+const Job51Crawler = require('./job51');
+const BossCrawler = require('./boss');
 
-// 真实抓取需要适配页面结构或对接开放 API
-// demo 提供本地示例数据，便于立即跑通整条链路
-const crawlers = [
-  new DemoCrawler(),
-  new XjrcCrawler(),
-  new ZhipinCrawler()
-];
+const crawlers = [];
+
+// demo：仅本地联调用（默认关闭，环境变量 ENABLE_DEMO=true 启用）
+if (config.enableDemo) crawlers.push(new DemoCrawler());
+
+// 真实数据源（按开关）
+if (config.crawlers.xjrc)    crawlers.push(new XjrcCrawler());
+if (config.crawlers.xjggzp)  crawlers.push(new XjggzpCrawler());
+if (config.crawlers.zhaopin) crawlers.push(new ZhaopinCrawler());
+if (config.crawlers.job51)   crawlers.push(new Job51Crawler());
+if (config.crawlers.boss)    crawlers.push(new BossCrawler());
+
+console.log(`已注册爬虫：${crawlers.map(c => c.name).join(', ') || '（无）'}`);
 
 module.exports = crawlers;

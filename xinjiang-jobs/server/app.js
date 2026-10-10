@@ -12,6 +12,7 @@ const jobsRouter = require('./routes/jobs');
 const subscribeRouter = require('./routes/subscribe');
 const systemRouter = require('./routes/system');
 const statsRouter = require('./routes/stats');
+const newsRouter = require('./routes/news');
 
 const app = express();
 app.use(cors());
@@ -32,9 +33,15 @@ app.use('/api/jobs', jobsRouter);
 app.use('/api/subscribe', subscribeRouter);
 app.use('/api/system', systemRouter);
 app.use('/api/stats', statsRouter);
+app.use('/api/news', newsRouter);
 
 // 启动定时抓取
 scheduler.start();
+
+// 进程退出时同步落盘
+const db = require('./db');
+process.on('SIGINT', () => { db.flushSync(); process.exit(0); });
+process.on('SIGTERM', () => { db.flushSync(); process.exit(0); });
 
 app.listen(config.port, () => {
   console.log(`XJ-Jobs server: http://localhost:${config.port}`);

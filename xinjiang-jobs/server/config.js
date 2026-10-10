@@ -17,6 +17,22 @@ module.exports = {
   // 默认每页数量
   pageSize: 20,
 
+  // 是否启用 demo 数据源（生产环境设为 false，仅本地联调用）
+  // 环境变量 ENABLE_DEMO=true 时启用，默认关闭
+  enableDemo: process.env.ENABLE_DEMO === 'true' || process.env.ENABLE_DEMO === '1',
+
+  // 是否启用各真实数据源（按需开关，默认全部启用）
+  crawlers: {
+    xjrc:    process.env.CRAWLER_XJRC    !== 'false',  // 新疆人才网
+    xjggzp:  process.env.CRAWLER_XJGGZP  !== 'false',  // 新疆公共招聘网
+    zhaopin: process.env.CRAWLER_ZHAOPIN !== 'false',  // 智联招聘
+    job51:   process.env.CRAWLER_51JOB   !== 'false',  // 前程无忧
+    boss:    process.env.CRAWLER_BOSS    !== 'false'   // Boss 直聘（需开放接口）
+  },
+
+  // 资讯抓取开关
+  enableNews: process.env.ENABLE_NEWS !== 'false',
+
   // 默认抓取城市（新疆地州）
   cities: [
     '乌鲁木齐', '克拉玛依', '吐鲁番', '哈密', '昌吉', '伊犁',
@@ -32,3 +48,4 @@ module.exports = {
     subscribeTemplateId: process.env.WX_SUBSCRIBE_TEMPLATE_ID || ''
   }
 };
+

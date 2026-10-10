@@ -25,6 +25,9 @@ async function fetchJobs(params){
 async function fetchStats(){return fetchJSON('/api/stats/overview')}
 async function fetchCities(){return fetchJSON('/api/jobs/cities/list')}
 async function fetchStatus(){return fetchJSON('/api/system/status')}
+async function fetchNews(params){const q=new URLSearchParams({pageSize:'50'});Object.keys(params||{}).forEach(k=>{if(params[k]!==''&&params[k]!=null)q.set(k,params[k])});return fetchJSON('/api/news/list?'+q.toString())}
+async function fetchNewsCats(){return fetchJSON('/api/news/categories')}
+async function fetchNewsDetail(id){return fetchJSON('/api/news/'+id)}
 async function fetchJobDetail(id){return fetchJSON('/api/jobs/'+id)}
 async function postSubscribe(data){
   const res=await fetch(API+'/api/subscribe',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(data)});
@@ -53,6 +56,7 @@ function render(){
   if(store.view==='jobs')loadJobsView();
   else if(store.view==='filter')loadFilterView();
   else if(store.view==='board')loadBoardView();
+  else if(store.view==='news')loadNewsView();
   else if(store.view==='me')loadMeView();
 
   // 顶部副标题随视图变化
@@ -301,35 +305,46 @@ function pieAndLegend(items,colors){
 
 // ============ 资讯视图 ============
 function viewNews(){
+  // 分类首项固定「全部」，其余从抓取数据动态生成；首次进入未加载时显示全部
   const cats=['全部','招考','政策','活动','攻略'];
   return `
-    <div class="tabs">${cats.map((c,i)=>`<div class="ct ${store._newsCat===(c)||(i===0&&!store._newsCat)?'active':''}" onclick="setNewsCat('${c}')">${c}</div>`).join('')}</div>
-    <div class="section" id="newsList">${renderNewsItems(NEWS)}</div>
+    <div class="tabs">${cats.map(c=>`<div class="ct ${store._newsCat===c||(!store._newsCat&&c==='全部')?'active':''}" onclick="setNewsCat('${c}')">${c}</div>`).join('')}</div>
+    <div class="section" id="newsList"><div class="loading">加载中...</div></div>
   `;
 }
 function setNewsCat(c){store._newsCat=c;render()}
+async function loadNewsView(){
+  const listEl=$('newsList');if(!listEl)return;
+  listEl.innerHTML='<div class="loading">加载中...</div>';
+  try{
+    const data=await fetchNews({cat:store._newsCat||''});
+    listEl.innerHTML=renderNewsItems(data.list);
+  }catch(e){listEl.innerHTML='<div class="empty">加载失败：'+esc(e.message)+'</div>'}
+}
 function renderNewsItems(list){
-  const cat=store._newsCat;
-  const filtered=cat&&cat!=='全部'?list.filter(n=>n.cat===cat):list;
-  if(!filtered.length)return'<div class="empty">暂无此类资讯</div>';
-  return filtered.map(n=>`
+  if(!list.length)return'<div class="empty">暂无此类资讯</div>';
+  return list.map(n=>`
     <div class="news-item" onclick="openNews(${n.id})">
-      <div class="nt"><span class="tag" style="background:#fff3e0;color:#ff9800;margin-right:6px">${esc(n.cat)}</span>${esc(n.t)}</div>
+      <div class="nt"><span class="tag" style="background:#fff3e0;color:#ff9800;margin-right:6px">${esc(n.cat)}</span>${esc(n.title)}</div>
       <div class="nm"><span>${esc(n.src)}</span><span>${n.date}</span></div>
     </div>
   `).join('');
 }
-function openNews(id){
-  const n=NEWS.find(x=>x.id===id);if(!n)return;
+async function openNews(id){
   const body=$('modalBody');
-  body.innerHTML=`<span class="close" onclick="closeModal()">×</span>
-    <h2>${esc(n.t)}</h2>
-    <div class="meta">${esc(n.src)} · ${n.date} · ${esc(n.cat)}</div>
-    <div class="st">摘要</div>
-    <div class="desc">${esc(n.summary)}</div>
-    <div class="desc" style="margin-top:10px;color:var(--muted);font-size:13px">提示：正式版本中此处接入资讯正文与原文链接。本预览为示例内容，用于展示资讯界面形态。</div>
-    <div class="actions"><button class="btn outline" onclick="closeModal()">关闭</button></div>`;
+  body.innerHTML='<div style="text-align:center;padding:40px">加载中...</div>';
   $('modal').classList.add('show');
+  try{
+    const n=await fetchNewsDetail(id);
+    body.innerHTML=`<span class="close" onclick="closeModal()">×</span>
+      <h2>${esc(n.title)}</h2>
+      <div class="meta">${esc(n.src)} · ${n.date} · ${esc(n.cat)}</div>
+      <div class="st">摘要</div>
+      <div class="desc">${esc(n.summary)}</div>
+      ${n.content?`<div class="st">正文</div><div class="desc">${esc(n.content)}</div>`:''}
+      <div class="desc" style="margin-top:10px;color:var(--muted);font-size:13px">${n.url?'原文链接：'+esc(n.url):'（资讯来自公共就业服务抓取，更多内容请关注来源平台）'}</div>
+      <div class="actions"><button class="btn outline" onclick="closeModal()">关闭</button>${n.url?`<button class="btn" onclick="copyText('${esc(n.url)}')">复制链接</button>`:''}</div>`;
+  }catch(e){body.innerHTML='<div class="empty">加载失败</div>'}
 }
 
 // ============ 我的视图 ============
