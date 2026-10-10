@@ -11,6 +11,7 @@ const scheduler = require('./services/scheduler');
 const jobsRouter = require('./routes/jobs');
 const subscribeRouter = require('./routes/subscribe');
 const systemRouter = require('./routes/system');
+const statsRouter = require('./routes/stats');
 
 const app = express();
 app.use(cors());
@@ -30,6 +31,7 @@ app.get('/api', (req, res) => res.json({ code: 0, msg: 'XJ-Jobs API online', ts:
 app.use('/api/jobs', jobsRouter);
 app.use('/api/subscribe', subscribeRouter);
 app.use('/api/system', systemRouter);
+app.use('/api/stats', statsRouter);
 
 // 启动定时抓取
 scheduler.start();

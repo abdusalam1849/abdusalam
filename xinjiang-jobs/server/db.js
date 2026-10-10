@@ -79,7 +79,8 @@ function saveJob(job) {
       url: job.url || '',
       publish_time: job.publish_time || '',
       fetched_at: now,
-      created_at: now
+      // 允许调用方指定入库时间（用于演示数据分散到多日，让趋势图有内容）
+      created_at: job.created_at || now
     };
     state.jobs.push(row);
   } else {
