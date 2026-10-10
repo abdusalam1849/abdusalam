@@ -12,14 +12,18 @@ function loadLS(k){try{return JSON.parse(localStorage.getItem('xj_'+k)||'null')}
 // ============ 数据请求 ============
 async function fetchJSON(path){
   const res=await fetch(API+path);
-  const j=await res.json();
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const text=await res.text();
+  if(!text)throw new Error('空响应');
+  let j;
+  try{j=JSON.parse(text)}catch(e){throw new Error('JSON 解析失败（响应长度 '+text.length+'）: '+text.slice(0,100))}
   if(j.code!==0)throw new Error(j.msg||'请求失败');
   return j.data;
 }
 async function fetchJobs(params){
   const q=new URLSearchParams();
   Object.keys(params).forEach(k=>{if(params[k]!==''&&params[k]!=null)q.set(k,params[k])});
-  q.set('pageSize','100');
+  q.set('pageSize','200');
   return fetchJSON('/api/jobs/list?'+q.toString());
 }
 async function fetchStats(){return fetchJSON('/api/stats/overview')}

@@ -9,10 +9,12 @@ const { saveNews } = require('../db');
 
 // 真实资讯源（部署到国内服务器后可抓取）
 const NEWS_SOURCES = [
-  { source: '人社厅', cat: '政策', url: 'https://www.xjrsj.gov.cn/zwgk/tzgg/' },
-  { source: '人社厅', cat: '招考', url: 'https://www.xjrsj.gov.cn/zwgk/zkzl/' },
-  { source: '公务员局', cat: '招考', url: 'http://www.scsy.gov.cn/' },
-  { source: '新疆日报', cat: '资讯', url: 'https://www.ts.cn/news/xj/' }
+  { source: '新疆人才网', cat: '资讯', url: 'https://www.xjhr.com/',                    listSel: 'a[href*="/News/"]', detail: true },
+  { source: '新疆人才网', cat: '招考', url: 'https://www.xjhr.com/news/class.aspx?classid=1050', listSel: 'a[href*="/News/"]', detail: true },
+  { source: '新疆人才网', cat: '政策', url: 'https://www.xjhr.com/news/class.aspx?classid=1006', listSel: 'a[href*="/News/"]', detail: true },
+  { source: '人社厅',     cat: '政策', url: 'https://www.xjrsj.gov.cn/zwgk/tzgg/' },
+  { source: '人社厅',     cat: '招考', url: 'https://www.xjrsj.gov.cn/zwgk/zkzl/' },
+  { source: '新疆日报',   cat: '资讯', url: 'https://www.ts.cn/news/xj/' }
 ];
 
 // 沙箱/网络不可达时的内置示例资讯（保证预览页有内容）
@@ -47,7 +49,7 @@ class NewsCrawler extends BaseCrawler {
     return real;
   }
 
-  async fetchSource({ source, cat, url }) {
+  async fetchSource({ source, cat, url, listSel, detail }) {
     let html;
     try {
       const res = await this.get(url);
@@ -57,18 +59,27 @@ class NewsCrawler extends BaseCrawler {
 
     const $ = cheerio.load(html);
     const list = [];
-    const selectors = [
-      'ul.list li a, .news-list li a, .notice-list li a, .info-list li a',
-      'table tr a, .public-list a, .article-list a, .content-list li a'
-    ];
+    // 若指定 listSel 用之；否则多组通用选择器兜底
+    const selectors = listSel
+      ? [listSel]
+      : ['ul.list li a, .news-list li a, .notice-list li a, .info-list li a',
+         'table tr a, .public-list a, .article-list a, .content-list li a'];
+
     for (const sel of selectors) {
       $(sel).each((_, el) => {
         const $a = $(el);
         const title = $a.text().trim();
         if (!title || title.length < 6) return;
-        if (!/招|聘|岗|职|公告|通知|政策|招考|补贴|考试|人才/.test(title)) return;
+        if (!/招|聘|岗|职|公告|通知|政策|招考|补贴|考试|人才|银龄|校园招聘|引进/.test(title)) return;
         const href = $a.attr('href') || '';
-        const fullUrl = href.startsWith('http') ? href : (url.replace(/\/[^\/]*$/, '/') + href.replace(/^\//, ''));
+        if (!href) return;
+        // 用 new URL 解析相对路径，处理 ../News/xxx 这种相对引用
+        let fullUrl = '';
+        try {
+          fullUrl = new URL(href, url).href;
+        } catch (e) {
+          fullUrl = href.startsWith('http') ? href : (url.replace(/\/[^\/]*$/, '/') + href.replace(/^\//, ''));
+        }
         const dateText = $a.parent().text();
         const dateMatch = dateText.match(/(20\d{2}[-\/年]\d{1,2}[-\/月]\d{1,2})/);
         list.push({
@@ -77,14 +88,64 @@ class NewsCrawler extends BaseCrawler {
           cat,
           src: source,
           date: dateMatch ? dateMatch[1].replace(/[年月]/g, '-').replace(/\/$/, '') : new Date().toISOString().slice(0, 10),
-          summary: title,  // 摘要先用标题，详情页抓正文
+          summary: title.slice(0, 100),  // 先用标题前 100 字做摘要，详情页抓正文替换
           content: '',
           url: fullUrl
         });
       });
       if (list.length) break;
     }
+
+    // 若开启详情抓取，并发抓正文（限 10 条避免过载）
+    if (detail && list.length) {
+      const toFetch = list.slice(0, 10);
+      const results = await this.mapConcurrent(toFetch, 3, item => this.fetchNewsDetail(item, source));
+      for (const r of results) {
+        if (r.status === 'fulfilled' && r.value) {
+          Object.assign(toFetch.find(x => x.url === r.value.url) || {}, r.value);
+        }
+      }
+    }
+
     return list.slice(0, 30);
+  }
+
+  // 抓资讯详情页正文
+  async fetchNewsDetail(item, source) {
+    try {
+      const res = await this.get(item.url);
+      const $ = cheerio.load(res.data);
+      // 通用正文容器：多组选择器
+      const bodySel = [
+        '.article-content, .content, .article, .news-content, .detail-content',
+        '#content, .main-content, .text, .news_text, .article-body'
+      ];
+      let content = '';
+      for (const sel of bodySel) {
+        const el = $(sel).first();
+        if (el.length && el.text().trim().length > 100) {
+          content = el.text().replace(/\s+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+          break;
+        }
+      }
+      // 兜底：取 <p> 集合
+      if (!content) {
+        const ps = $('p').map((_, p) => $(p).text().trim()).get().filter(t => t.length > 20);
+        content = ps.join('\n\n');
+      }
+      // 时间/阅读次数：「时间：2026/9/29 阅读：24470次」
+      const meta = $('body').text();
+      const tm = meta.match(/时间[：:]\s*(20\d{2}[\/\-年]\d{1,2}[\/\-月]\d{1,2})/);
+      if (tm) item.date = tm[1].replace(/[年月]/g, '-').replace(/[\/]$/, '');
+
+      if (content) {
+        item.content = content.slice(0, 5000);
+        item.summary = content.slice(0, 150).replace(/\n/g, ' ');
+      }
+      return item;
+    } catch (e) {
+      return null;
+    }
   }
 
   // 资讯入库：override persist 调用 saveNews 而非 saveJob

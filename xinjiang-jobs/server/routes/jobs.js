@@ -11,7 +11,7 @@ const router = express.Router();
 router.get('/list', (req, res) => {
   const { keyword = '', city = '', job_type = '', source = '' } = req.query;
   const page = Math.max(1, parseInt(req.query.page || 1));
-  const pageSize = Math.min(50, Math.max(1, parseInt(req.query.pageSize || config.pageSize)));
+  const pageSize = Math.min(500, Math.max(1, parseInt(req.query.pageSize || config.pageSize)));
 
   const data = db.listJobs({ keyword, city, job_type, source, page, pageSize });
   res.json({
