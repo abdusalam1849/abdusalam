@@ -1,0 +1,73 @@
+<view class="page">
+  <block wx:if="{{!done}}">
+    <view class="sub-head">
+      <view class="sub-title">
+        <text class="main">闪卡记忆</text>
+        <text class="small">{{i + 1}} / {{n}}</text>
+      </view>
+      <view class="icon-btn {{fav ? 'is-fav' : ''}}" bindtap="toggleFav">★</view>
+    </view>
+    <view class="progress-line">
+      <view class="progress-fill" style="width:{{pct}}%"></view>
+    </view>
+
+    <view class="flash-card" bindtap="flip">
+      <block wx:if="{{!flipped}}">
+        <view class="topic-chip">{{word.topic}}</view>
+        <view class="word">{{word.word}}</view>
+        <view class="speak" catchtap="speak"><view class="play-tri"></view></view>
+        <view class="phonetic">{{word.phonetic}}</view>
+        <view class="tap-hint">轻点卡片查看释义</view>
+      </block>
+      <block wx:else>
+        <view class="topic-chip">{{word.topic}}</view>
+        <view class="back-meaning">{{word.meaning}}</view>
+        <view class="back-pos">{{word.pos}}</view>
+        <view class="speak" catchtap="speak"><view class="play-tri"></view></view>
+        <view class="example-box">
+          <view class="example">{{word.example}}</view>
+          <view class="example-cn">{{word.translation}}</view>
+        </view>
+        <view class="tap-hint">轻点卡片翻回正面</view>
+      </block>
+    </view>
+
+    <view class="study-controls">
+      <block wx:if="{{flipped}}">
+        <view class="rating">
+          <view class="rate-btn rate-again" data-rating="again" bindtap="rate">
+            <text class="rt">不熟</text>
+            <text class="rs">10 分钟后</text>
+          </view>
+          <view class="rate-btn rate-fuzzy" data-rating="fuzzy" bindtap="rate">
+            <text class="rt">模糊</text>
+            <text class="rs">明天再复习</text>
+          </view>
+          <view class="rate-btn rate-known" data-rating="known" bindtap="rate">
+            <text class="rt">认识</text>
+            <text class="rs">{{nextDays}} 天后</text>
+          </view>
+        </view>
+        <view class="study-note">如实选择，系统会按记忆曲线安排复习</view>
+      </block>
+      <view wx:else class="btn btn-soft btn-block" style="margin-top:0" bindtap="flip">显示释义</view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="summary">
+      <view class="summary-badge">✓</view>
+      <view class="summary-title">这一组完成啦</view>
+      <view class="summary-desc">共复习 {{total}} 个词，系统已按记忆曲线安排好下次复习。</view>
+      <view class="summary-chips">
+        <view class="cell"><text class="n">{{known}}</text><text class="t">认识</text></view>
+        <view class="cell"><text class="n">{{fuzzy}}</text><text class="t">模糊</text></view>
+        <view class="cell"><text class="n">{{again}}</text><text class="t">不熟</text></view>
+      </view>
+      <view class="summary-actions">
+        <view class="btn btn-primary" bindtap="restart">再来一组</view>
+        <view class="btn btn-ghost" bindtap="goHome">回到首页</view>
+      </view>
+    </view>
+  </block>
+</view>

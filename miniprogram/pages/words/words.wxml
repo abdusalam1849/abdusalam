@@ -1,0 +1,91 @@
+<view class="page">
+  <view class="page-head">
+    <view class="eyebrow-line">WORD BANK</view>
+    <view class="page-title">词库 <text class="count">{{total}}</text></view>
+  </view>
+
+  <view class="search">
+    <text class="s-ico">⌕</text>
+    <input
+      value="{{query}}"
+      placeholder="搜索单词、释义或例句"
+      confirm-type="search"
+      bindinput="onSearch"
+      autocomplete="off"
+    />
+    <view wx:if="{{query}}" class="clear" bindtap="clearSearch">×</view>
+  </view>
+
+  <scroll-view class="chips" scroll-x="true" enhanced="true" show-scrollbar="{{false}}">
+    <view class="chips-scroll">
+      <view
+        wx:for="{{filters}}"
+        wx:key="key"
+        class="chip-btn {{filter === item.key ? 'on' : ''}}"
+        data-filter="{{item.key}}"
+        bindtap="setFilter"
+      >{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <scroll-view class="topic-scroll" scroll-x="true" enhanced="true" show-scrollbar="{{false}}">
+    <view class="topic-btn {{topic === 'all' ? 'on' : ''}}" data-topic="all" bindtap="setTopic">全部主题</view>
+    <view
+      wx:for="{{topics}}"
+      wx:key="*this"
+      class="topic-btn {{topic === item ? 'on' : ''}}"
+      data-topic="{{item}}"
+      bindtap="setTopic"
+    >{{item}}</view>
+  </scroll-view>
+
+  <view wx:if="{{list.length}}" class="word-list">
+    <view
+      wx:for="{{list}}"
+      wx:key="word"
+      class="word-item"
+      data-word="{{item.word}}"
+      bindtap="openWord"
+    >
+      <view class="status-dot {{item.statusCls}}"></view>
+      <view class="word-main">
+        <view class="word-title">
+          <text class="w">{{item.word}}</text>
+          <text class="p">{{item.phonetic}}</text>
+        </view>
+        <view class="word-meaning">{{item.pos}} {{item.meaning}}</view>
+      </view>
+      <view class="word-star {{item.fav ? 'on' : ''}}" data-word="{{item.word}}" catchtap="toggleFav">★</view>
+    </view>
+  </view>
+
+  <view wx:else class="empty">
+    <view class="e-ico">⌕</view>
+    <view class="e-text">没有找到匹配的单词</view>
+    <view class="e-text">换个关键词或筛选条件试试</view>
+  </view>
+</view>
+
+<view wx:if="{{showSheet}}" class="sheet-mask" bindtap="closeSheet"></view>
+<view wx:if="{{showSheet}}" class="sheet" catchtap="noop">
+  <view class="sheet-handle"></view>
+  <view class="sheet-close" bindtap="closeSheet">×</view>
+  <view class="sheet-word-row">
+    <view class="sheet-word">{{current.word}}</view>
+    <view class="sheet-speak" bindtap="speakCurrent"><view class="play-tri"></view></view>
+  </view>
+  <view class="sheet-phon">{{current.phonetic}} · {{current.topic}}</view>
+  <view class="sheet-meaning"><text class="sheet-pos">{{current.pos}}</text>{{current.meaning}}</view>
+  <view class="sheet-example">
+    <view class="en">{{current.example}}</view>
+    <view class="cn">{{current.translation}}</view>
+  </view>
+  <view class="sheet-status">
+    <view class="status-dot {{currentStatusCls}}"></view>
+    <text>{{currentStatus}} · {{currentReview}}</text>
+  </view>
+  <view class="sheet-actions">
+    <view class="btn {{currentFav ? 'btn-fav-on' : 'btn-soft'}}" bindtap="toggleCurrentFav">{{currentFav ? '已收藏' : '收藏'}}</view>
+    <view class="btn btn-ghost" bindtap="speakCurrent">发音</view>
+  </view>
+</view>

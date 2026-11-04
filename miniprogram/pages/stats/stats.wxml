@@ -1,0 +1,83 @@
+<view class="page">
+  <view class="page-head">
+    <view class="eyebrow-line">YOUR PROGRESS</view>
+    <view class="page-title">学习统计</view>
+  </view>
+
+  <view class="streak-card">
+    <view class="streak-main">
+      <view class="streak-flame">✦</view>
+      <view>
+        <view class="streak-num">{{streak}} 天</view>
+        <view class="streak-label">连续学习 · 今日已学 {{today}} 词</view>
+      </view>
+    </view>
+    <view class="week-dots">
+      <view wx:for="{{days}}" wx:key="key" class="week-dot {{item.count ? 'on' : ''}} {{item.isToday ? 'today' : ''}}">
+        <view class="bar"></view>
+        <view class="lab">{{item.label}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="metric-grid">
+    <view class="metric">
+      <view class="metric-value">{{learned}}<text class="unit">词</text></view>
+      <view class="metric-label">已学单词</view>
+    </view>
+    <view class="metric">
+      <view class="metric-value">{{mastered}}<text class="unit">词</text></view>
+      <view class="metric-label">已掌握 · 第 4 阶段以上</view>
+    </view>
+    <view class="metric">
+      <view class="metric-value">{{due}}<text class="unit">词</text></view>
+      <view class="metric-label">待复习</view>
+    </view>
+    <view class="metric">
+      <view class="metric-value">{{accuracy}}<text class="unit">%</text></view>
+      <view class="metric-label">整体正确率</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-head">
+      <text class="ct">最近 7 天</text>
+      <text class="cs">学习词数</text>
+    </view>
+    <view class="bars">
+      <view wx:for="{{days}}" wx:key="key" class="bar-item {{item.empty ? 'empty' : ''}} {{item.isToday ? 'today' : ''}}">
+        <text class="bar-val">{{item.count || ''}}</text>
+        <view class="bar" style="height:{{item.height}}rpx"></view>
+        <text class="bar-label">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-head">
+      <text class="ct">主题掌握度</text>
+      <text class="cs">已学 / 总数</text>
+    </view>
+    <view wx:for="{{topics}}" wx:key="name" class="topic-row">
+      <text class="topic-name">{{item.name}}</text>
+      <view class="topic-bar"><view class="fill" style="width:{{item.pct}}%"></view></view>
+      <text class="topic-count">{{item.learned}}/{{item.total}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-head">
+      <text class="ct">我的收藏</text>
+      <text class="cs" bindtap="goWords">查看全部</text>
+    </view>
+    <view wx:if="{{favWords.length}}" class="fav-preview">
+      <view wx:for="{{favWords}}" wx:key="word" class="fav-row">
+        <text class="fw">{{item.word}}</text>
+        <text class="fm">{{item.meaning}}</text>
+      </view>
+    </view>
+    <view wx:else class="empty" style="padding:30rpx 10rpx 10rpx;">
+      <view class="e-text">还没有收藏的单词，去词库点一颗星吧。</view>
+    </view>
+  </view>
+</view>

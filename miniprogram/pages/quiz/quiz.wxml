@@ -1,0 +1,69 @@
+<view class="page">
+  <block wx:if="{{!done}}">
+    <view class="sub-head">
+      <view class="sub-title">
+        <text class="main">选择题测验</text>
+        <text class="small">{{i + 1}} / {{n}}</text>
+      </view>
+      <view class="score-pill">{{score}} 分</view>
+    </view>
+    <view class="progress-line">
+      <view class="progress-fill" style="width:{{pct}}%"></view>
+    </view>
+
+    <view class="question-card">
+      <view class="q-label">{{question.type === 'en2zh' ? '选出正确的中文释义' : '选出对应的英文单词'}}</view>
+      <view class="{{question.type === 'en2zh' ? 'q-word' : 'q-meaning'}}">
+        {{question.type === 'en2zh' ? question.word.word : question.word.meaning}}
+      </view>
+      <view wx:if="{{question.type === 'en2zh'}}" class="q-extra">
+        <text>{{question.word.phonetic}}</text>
+        <view class="mini-speak" catchtap="speak"><view class="play-tri"></view></view>
+      </view>
+      <view wx:else class="q-extra">{{question.word.pos}}</view>
+    </view>
+
+    <view class="options">
+      <view
+        wx:for="{{question.options}}"
+        wx:key="text"
+        class="option {{answered ? (item.correct ? 'correct' : (index === selected ? 'wrong' : 'dim')) : ''}}"
+        data-index="{{index}}"
+        bindtap="choose"
+      >
+        <view class="opt-tag">{{letters[index]}}</view>
+        <view class="opt-text">{{item.text}}</view>
+        <view wx:if="{{answered && item.correct}}" class="opt-mark">✓</view>
+        <view wx:if="{{answered && !item.correct && index === selected}}" class="opt-mark">×</view>
+      </view>
+    </view>
+
+    <block wx:if="{{answered}}">
+      <view class="feedback {{ok ? 'ok' : 'bad'}}">
+        <text class="fb-title">{{ok ? '回答正确' : '正确答案：' + correctText}}</text>
+        <text>{{ok ? '记忆很稳，继续保持。' : '别急，读一遍例句再记一次。'}}</text>
+        <text class="fx-en">{{question.word.example}}</text>
+      </view>
+      <view class="after-answer">
+        <view class="btn btn-primary" bindtap="next">{{last ? '查看结果' : '下一题'}}</view>
+      </view>
+    </block>
+  </block>
+
+  <block wx:else>
+    <view class="summary">
+      <view class="summary-badge">✓</view>
+      <view class="summary-title">测验完成</view>
+      <view class="summary-desc">答对 {{score}} / {{n}} 题，错题已加入短期复习队列。</view>
+      <view class="summary-chips">
+        <view class="cell"><text class="n">{{score}}</text><text class="t">答对题数</text></view>
+        <view class="cell"><text class="n">{{accuracy}}%</text><text class="t">正确率</text></view>
+        <view class="cell"><text class="n">{{wrong}}</text><text class="t">需要巩固</text></view>
+      </view>
+      <view class="summary-actions">
+        <view class="btn btn-primary" bindtap="restart">再来一组</view>
+        <view class="btn btn-ghost" bindtap="goHome">回到首页</view>
+      </view>
+    </view>
+  </block>
+</view>

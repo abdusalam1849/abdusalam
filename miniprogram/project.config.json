@@ -1,0 +1,22 @@
+{
+  "description": "雅思词汇学习小程序（示例词库版）",
+  "packOptions": {
+    "ignore": []
+  },
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "newFeature": true,
+    "coverView": true,
+    "autoAudits": false
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.4.0",
+  "appid": "touristappid",
+  "projectname": "ielts-vocab",
+  "miniprogramRoot": "./",
+  "condition": {}
+}

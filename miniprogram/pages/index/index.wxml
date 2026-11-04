@@ -1,0 +1,73 @@
+<view class="page">
+  <view class="home-head">
+    <view>
+      <view class="date">{{dateText}}</view>
+      <view class="greeting">{{greeting}}，</view>
+      <view class="greeting">今天背几个词？</view>
+    </view>
+    <view class="streak-pill">{{streak}} 天</view>
+  </view>
+
+  <view class="hero">
+    <view class="hero-glow"></view>
+    <view class="hero-top">
+      <text class="eyebrow">TODAY'S PLAN</text>
+      <text class="chip-lite">{{dueText}}</text>
+    </view>
+    <view class="hero-main">
+      <view class="hero-num">
+        <text class="big">{{today}}</text>
+        <text class="small"> / {{goal}} 词</text>
+      </view>
+      <view class="hero-text">
+        <text class="label">今日进度</text>
+        <text class="title">{{heroTitle}}</text>
+        <text class="desc">{{sub}}</text>
+      </view>
+    </view>
+    <view class="hero-bar">
+      <view class="hero-bar-fill" style="width:{{pct}}%"></view>
+    </view>
+    <view class="btn btn-primary btn-block" bindtap="startStudy">{{startLabel}}</view>
+  </view>
+
+  <view class="action-grid">
+    <view class="action" bindtap="startStudy">
+      <view class="action-ico tone-blue">▤</view>
+      <text class="action-title">闪卡记忆</text>
+      <text class="action-desc">翻卡记忆，按熟练度安排复习</text>
+    </view>
+    <view class="action" bindtap="startQuiz">
+      <view class="action-ico tone-amber">✓</view>
+      <text class="action-title">选择题</text>
+      <text class="action-desc">四选一，快速检测掌握度</text>
+    </view>
+    <view class="action" bindtap="startSpell">
+      <view class="action-ico tone-green">✎</view>
+      <text class="action-title">拼写听音</text>
+      <text class="action-desc">听发音，把单词拼出来</text>
+    </view>
+    <view class="action" bindtap="goWords">
+      <view class="action-ico tone-violet">☰</view>
+      <text class="action-title">全部词库</text>
+      <text class="action-desc">{{totalWords}} 个雅思核心词</text>
+    </view>
+  </view>
+
+  <view class="mini-stats">
+    <view class="item">
+      <text class="num">{{learned}}</text>
+      <text class="lab">已学单词</text>
+    </view>
+    <view class="item">
+      <text class="num">{{mastered}}</text>
+      <text class="lab">已掌握</text>
+    </view>
+    <view class="item">
+      <text class="num">{{fav}}</text>
+      <text class="lab">收藏</text>
+    </view>
+  </view>
+
+  <view class="quote-card"><text style="font-weight:700;color:#a06a16;">小提示</text> · 认识不等于记住，能拼出来的词才算真正掌握。每天 20 词，30 天就是 600 词。</view>
+</view>

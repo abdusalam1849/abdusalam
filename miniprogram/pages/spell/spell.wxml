@@ -1,0 +1,73 @@
+<view class="page">
+  <block wx:if="{{!done}}">
+    <view class="sub-head">
+      <view class="sub-title">
+        <text class="main">拼写听音</text>
+        <text class="small">{{i + 1}} / {{n}}</text>
+      </view>
+      <view class="score-pill">{{score}} 分</view>
+    </view>
+    <view class="progress-line">
+      <view class="progress-fill" style="width:{{pct}}%"></view>
+    </view>
+
+    <view class="spell-card">
+      <view class="audio-big" bindtap="speak"><view class="play-tri"></view></view>
+      <view class="spell-meaning">{{word.meaning}}</view>
+      <view class="spell-pos">{{word.pos}} · {{word.phonetic}}</view>
+      <view class="spell-example">{{example}}</view>
+      <view class="spell-cn">{{word.translation}}</view>
+    </view>
+
+    <view class="spell-input-wrap">
+      <input
+        class="spell-input"
+        value="{{value}}"
+        placeholder="输入英文单词"
+        confirm-type="done"
+        bindinput="onInput"
+        bindconfirm="submit"
+        disabled="{{answered}}"
+        focus="{{focus && !answered}}"
+        autocomplete="off"
+      />
+      <view class="btn btn-primary" bindtap="submit">提交</view>
+    </view>
+
+    <view class="spell-tools">
+      <view class="text-btn {{hint || answered ? 'disabled' : ''}}" bindtap="showHint">提示：首字母</view>
+      <view class="spell-tip">{{word.word.length}} 个字母</view>
+    </view>
+
+    <view wx:if="{{hint && !answered}}" class="hint-line">{{hintText}}</view>
+
+    <view wx:if="{{answered}}" class="feedback {{ok ? 'ok' : 'bad'}}">
+      <text class="fb-title">{{ok ? '拼写正确' : '正确拼写：' + answer}}</text>
+      <text>{{ok ? '这个词已加入记忆曲线。' : '再读一遍例句，注意拼写细节。'}}</text>
+      <text class="fx-en">{{word.example}}</text>
+    </view>
+
+    <view wx:if="{{answered}}" class="after-answer">
+      <view class="btn btn-primary" bindtap="next">{{i + 1 >= n ? '查看结果' : '下一题'}}</view>
+    </view>
+
+    <view wx:else class="spell-tip" style="text-align:center;margin-top:20rpx;">听不清可以多点几次发音，先想再拼。</view>
+  </block>
+
+  <block wx:else>
+    <view class="summary">
+      <view class="summary-badge">✎</view>
+      <view class="summary-title">拼写练习完成</view>
+      <view class="summary-desc">拼对 {{score}} / {{n}} 个词，拼错的词会很快再次出现。</view>
+      <view class="summary-chips">
+        <view class="cell"><text class="n">{{score}}</text><text class="t">拼写正确</text></view>
+        <view class="cell"><text class="n">{{accuracy}}%</text><text class="t">正确率</text></view>
+        <view class="cell"><text class="n">{{wrong}}</text><text class="t">需要巩固</text></view>
+      </view>
+      <view class="summary-actions">
+        <view class="btn btn-primary" bindtap="restart">再来一组</view>
+        <view class="btn btn-ghost" bindtap="goHome">回到首页</view>
+      </view>
+    </view>
+  </block>
+</view>

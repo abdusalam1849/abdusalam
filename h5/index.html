@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f1e8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>词见 · IELTS 雅思词汇</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="phone-shell">
+    <div id="view" class="view"></div>
+    <nav id="tabbar" class="tabbar">
+      <button data-action="tab" data-view="home" class="tab is-active">
+        <span class="tab-ico" data-icon="home"></span><span>首页</span>
+      </button>
+      <button data-action="tab" data-view="words" class="tab">
+        <span class="tab-ico" data-icon="book"></span><span>词库</span>
+      </button>
+      <button data-action="tab" data-view="stats" class="tab">
+        <span class="tab-ico" data-icon="chart"></span><span>统计</span>
+      </button>
+    </nav>
+    <div id="overlay"></div>
+    <div id="toast" class="toast"></div>
+  </div>
+  <script src="js/words.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
