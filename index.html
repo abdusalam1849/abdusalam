@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>乌鲁木齐市货车限行地图</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 顶部标题栏 -->
+  <header class="app-header">
+    <div class="header-content">
+      <h1>🚚 乌鲁木齐货车限行地图</h1>
+      <p class="subtitle">乌政通规〔2024〕2号 · 2025年1月1日起实施</p>
+    </div>
+    <button class="btn-toggle" id="togglePanel" aria-label="切换面板">
+      <span class="icon-bars"></span>
+    </button>
+  </header>
+
+  <!-- 地图容器 -->
+  <main class="map-container">
+    <div id="map"></div>
+    
+    <!-- 地图图例 -->
+    <div class="map-legend" id="legend">
+      <h4>限行图例</h4>
+      <div class="legend-items">
+        <div class="legend-item"><span class="dot dot-full"></span>全天限行</div>
+        <div class="legend-item"><span class="dot dot-8-24"></span>8:00-24:00 限行</div>
+        <div class="legend-item"><span class="dot dot-peak"></span>早晚高峰限行</div>
+        <div class="legend-item"><span class="dot dot-road"></span>限行路段</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 侧边筛选面板 -->
+  <aside class="filter-panel" id="filterPanel">
+    <div class="panel-section">
+      <h3>🚛 车辆类型</h3>
+      <div class="vehicle-tabs" id="vehicleTabs">
+        <button class="tab-btn active" data-vehicle="heavy">重型货车</button>
+        <button class="tab-btn" data-vehicle="medium">中型货车</button>
+        <button class="tab-btn" data-vehicle="light">轻型及以下</button>
+        <button class="tab-btn" data-vehicle="all">全部显示</button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <h3>⏰ 限行时段</h3>
+      <div class="time-slider-wrapper">
+        <div class="time-display">
+          <span id="timeDisplay">08:00</span>
+        </div>
+        <input type="range" id="timeSlider" min="0" max="1440" step="30" value="480">
+        <div class="time-labels">
+          <span>0:00</span>
+          <span>6:00</span>
+          <span>12:00</span>
+          <span>18:00</span>
+          <span>24:00</span>
+        </div>
+      </div>
+      <div class="quick-times">
+        <button class="quick-btn" data-time="480">早高峰</button>
+        <button class="quick-btn" data-time="720">中午</button>
+        <button class="quick-btn" data-time="1080">晚高峰</button>
+        <button class="quick-btn" data-time="1380">夜间</button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <h3>📍 限行区域</h3>
+      <div class="zone-list" id="zoneList">
+        <!-- 动态生成 -->
+      </div>
+    </div>
+
+    <div class="panel-section rule-summary">
+      <h3>📋 当前限行规则</h3>
+      <div class="rule-content" id="ruleContent">
+        <!-- 动态生成 -->
+      </div>
+    </div>
+
+    <div class="panel-section tips">
+      <h3>💡 温馨提示</h3>
+      <ul>
+        <li>新能源重型货车按重型规则执行</li>
+        <li>新能源中型/轻型货车全天不限行</li>
+        <li>皮卡车（多用途货车）全天不限行</li>
+        <li>紧急车辆不受限行限制</li>
+        <li>高架道路全天禁止货车通行</li>
+        <li>需通行请申请电子通行证</li>
+      </ul>
+    </div>
+
+    <div class="panel-actions">
+      <button class="btn-secondary" id="btnReset">重置筛选</button>
+      <button class="btn-primary" id="btnLocate">定位乌鲁木齐</button>
+    </div>
+  </aside>
+
+  <!-- 底部状态栏 -->
+  <footer class="status-bar">
+    <div class="status-left">
+      <span id="currentStatus">显示中：重型货车 · 08:00</span>
+    </div>
+    <div class="status-right">
+      <span id="zoneCount">共加载 0 个区域</span>
+    </div>
+  </footer>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- 数据文件 -->
+  <script src="data.js"></script>
+  <!-- 主应用 -->
+  <script src="app.js"></script>
+</body>
+</html>
